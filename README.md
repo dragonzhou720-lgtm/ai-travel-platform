@@ -178,3 +178,4 @@ mvn spring-boot:run
 ## 备注
 
 本 README 反映的是当前项目的实际开发状态，后续随着微服务、配置中心和部署方案完善，可以继续更新为完整项目说明文档。
+# ai-travel-platform

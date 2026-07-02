@@ -1,0 +1,17 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: user-service
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+        register-enabled: false
+      config:
+        enabled: false
+
+jwt:
+  secret: travel-platform-jwt-secret-key-2024-must-be-at-least-256-bits-long-for-hs256-algorithm
+  expiration: 604800000

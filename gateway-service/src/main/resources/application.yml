@@ -1,5 +1,10 @@
 server:
   port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 spring:
   application:
@@ -14,5 +19,31 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true
-          lower-case-service-id: true
+          enabled: false
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/user/**
+        - id: ai-service
+          uri: lb://ai-service
+          predicates:
+            - Path=/api/ai/**
+        - id: route-service
+          uri: lb://route-service
+          predicates:
+            - Path=/api/route/**
+        - id: attraction-service
+          uri: lb://attraction-service
+          predicates:
+            - Path=/api/attraction/**
+        - id: hotel-service
+          uri: lb://hotel-service
+          predicates:
+            - Path=/api/hotel/**
+        - id: favorite-service
+          uri: lb://favorite-service
+          predicates:
+            - Path=/api/favorite/**
+      default-filters:
+        - StripPrefix=1

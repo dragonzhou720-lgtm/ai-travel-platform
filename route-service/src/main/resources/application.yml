@@ -1,13 +1,28 @@
 server:
   port: 8083
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 spring:
   application:
     name: route-service
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3309/travel_platform?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848
+        enabled: false
+        register-enabled: false
       config:
-        server-addr: 127.0.0.1:8848
-        file-extension: yml
+        enabled: false

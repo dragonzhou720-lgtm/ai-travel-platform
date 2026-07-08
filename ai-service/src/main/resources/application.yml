@@ -1,5 +1,10 @@
 server:
   port: 8082
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 spring:
   application:
@@ -7,7 +12,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848
+        enabled: false
+        register-enabled: false
       config:
-        server-addr: 127.0.0.1:8848
-        file-extension: yml
+        enabled: false

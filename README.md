@@ -41,6 +41,111 @@
 - `route-service` 已可成功连接 Docker MySQL 并读取路线历史数据
 - `route-service`、`attraction-service`、`hotel-service`、`gateway-service`、`ai-service`、`favorite-service` 已补充 UTF-8 响应编码配置
 
+### 旅游资源服务模块（成员B负责）
+
+#### Attraction-Service 景点服务 ✅
+
+已完成以下功能：
+
+| API接口 | 方法 | 功能说明 |
+|---------|------|----------|
+| `/api/attractions` | POST | 新增景点 |
+| `/api/attractions/{id}` | PUT | 修改景点 |
+| `/api/attractions/{id}` | DELETE | 删除景点 |
+| `/api/attractions` | GET | 景点查询（分页） |
+| `/api/attractions/{id}` | GET | 景点详情 |
+| `/api/attractions/hot` | GET | 热门景点 |
+| `/api/attractions/cities` | GET | 城市列表 |
+
+**查询支持参数**：
+- `city`：按城市筛选
+- `minPrice` / `maxPrice`：按价格区间筛选
+- `sortBy`：排序字段（`rating` / `price`）
+- `sortOrder`：排序方式（`asc` / `desc`）
+- `pageNum` / `pageSize`：分页参数
+
+#### Hotel-Service 酒店服务 ✅
+
+已完成以下功能：
+
+| API接口 | 方法 | 功能说明 |
+|---------|------|----------|
+| `/api/hotels` | POST | 新增酒店 |
+| `/api/hotels/{id}` | PUT | 修改酒店 |
+| `/api/hotels/{id}` | DELETE | 删除酒店 |
+| `/api/hotels` | GET | 酒店查询（分页） |
+| `/api/hotels/{id}` | GET | 酒店详情 |
+| `/api/hotels/hot` | GET | 热门酒店 |
+| `/api/hotels/cities` | GET | 城市列表 |
+| `/api/hotels/recommend` | GET | 酒店推荐 |
+
+**查询支持参数**：
+- `city`：按城市筛选
+- `minPrice` / `maxPrice`：按预算筛选
+- `sortBy`：排序字段（`rating` / `price`）
+- `sortOrder`：排序方式（`asc` / `desc`）
+- `pageNum` / `pageSize`：分页参数
+
+#### Favorite-Service 收藏服务 ✅
+
+已完成以下功能：
+
+| API接口 | 方法 | 功能说明 |
+|---------|------|----------|
+| `/api/favorites` | POST | 添加收藏（支持景点/酒店/路线） |
+| `/api/favorites` | DELETE | 删除收藏 |
+| `/api/favorites/user/{userId}` | GET | 用户收藏列表 |
+| `/api/favorites/user/{userId}/type/{targetType}` | GET | 按类型筛选收藏 |
+| `/api/favorites/check` | GET | 检查是否已收藏 |
+
+#### Redis 缓存实现 ✅
+
+各服务已实现以下缓存功能：
+
+**Attraction-Service**：
+- `attraction:hot`：热门景点缓存（30分钟）
+- `attraction:cities`：热门城市缓存（30分钟）
+- `attraction:detail:{id}`：景点详情缓存（30分钟）
+
+**Hotel-Service**：
+- `hotel:hot`：热门酒店缓存（30分钟）
+- `hotel:cities`：热门城市缓存（30分钟）
+- `hotel:detail:{id}`：酒店详情缓存（30分钟）
+
+**Favorite-Service**：
+- `favorite:user:{userId}`：用户收藏列表缓存（15分钟）
+
+#### Docker 镜像构建 ✅
+
+三个业务服务均已配置 Dockerfile 并支持通过 `docker-compose` 构建运行：
+
+| 服务 | Dockerfile | 端口 |
+|------|------------|------|
+| Attraction-Service | [attraction-service/Dockerfile](file:///d:/ai-travel-platform-main/attraction-service/Dockerfile) | 8084 |
+| Hotel-Service | [hotel-service/Dockerfile](file:///d:/ai-travel-platform-main/hotel-service/Dockerfile) | 8085 |
+| Favorite-Service | [favorite-service/Dockerfile](file:///d:/ai-travel-platform-main/favorite-service/Dockerfile) | 8086 |
+
+#### 数据库设计 ✅
+
+| 表名 | 字段 | 数据量 |
+|------|------|--------|
+| `attraction` | id, name, city, ticket_price, rating, description, cover_image, open_time, tags, status | 51条 |
+| `hotel` | id, name, city, price_per_night, rating, star_level, address, description, cover_image, tags, status | 36条 |
+| `favorite` | id, user_id, target_id, target_type, target_name, created_at | 20条 |
+
+#### 服务启动方式
+
+所有服务已集成到 `docker-compose.yaml`，可一键启动：
+
+```bash
+docker-compose up -d
+```
+
+启动后访问地址：
+- 景点服务：`http://localhost:8084/api/attractions`
+- 酒店服务：`http://localhost:8085/api/hotels`
+- 收藏服务：`http://localhost:8086/api/favorites/user/1`
+
 ### 当前状态说明
 
 - `user-service` 本地调试时已可正常启动到 `8081`

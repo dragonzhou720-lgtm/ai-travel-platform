@@ -22,17 +22,29 @@ public class Hotel {
     @TableField("city")
     private String city;
 
-    @TableField("price")
-    private BigDecimal price;
+    @TableField("address")
+    private String address;
+
+    @TableField("price_per_night")
+    private BigDecimal pricePerNight;
 
     @TableField("rating")
     private BigDecimal rating;
 
-    @TableField("address")
-    private String address;
+    @TableField("star_level")
+    private Integer starLevel;
 
-    @TableField("image_url")
-    private String imageUrl;
+    @TableField("description")
+    private String description;
+
+    @TableField("tags")
+    private String tags;
+
+    @TableField("cover_image")
+    private String coverImage;
+
+    @TableField("status")
+    private Integer status;
 
     @TableField("created_at")
     private LocalDateTime createdAt;

@@ -11,11 +11,17 @@ public class AttractionDTO {
 
     private String city;
 
-    private BigDecimal price;
+    private String address;
+
+    private BigDecimal ticketPrice;
 
     private BigDecimal rating;
 
     private String description;
 
-    private String imageUrl;
+    private String openTime;
+
+    private String tags;
+
+    private String coverImage;
 }

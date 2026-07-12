@@ -34,10 +34,14 @@ public class HotelService {
         Hotel hotel = new Hotel();
         hotel.setName(dto.getName());
         hotel.setCity(dto.getCity());
-        hotel.setPrice(dto.getPrice());
-        hotel.setRating(dto.getRating());
         hotel.setAddress(dto.getAddress());
-        hotel.setImageUrl(dto.getImageUrl());
+        hotel.setPricePerNight(dto.getPricePerNight());
+        hotel.setRating(dto.getRating());
+        hotel.setStarLevel(dto.getStarLevel());
+        hotel.setDescription(dto.getDescription());
+        hotel.setTags(dto.getTags());
+        hotel.setCoverImage(dto.getCoverImage());
+        hotel.setStatus(1);
         hotelMapper.insert(hotel);
         clearCache();
         return hotel;
@@ -49,10 +53,13 @@ public class HotelService {
         if (hotel != null) {
             hotel.setName(dto.getName());
             hotel.setCity(dto.getCity());
-            hotel.setPrice(dto.getPrice());
-            hotel.setRating(dto.getRating());
             hotel.setAddress(dto.getAddress());
-            hotel.setImageUrl(dto.getImageUrl());
+            hotel.setPricePerNight(dto.getPricePerNight());
+            hotel.setRating(dto.getRating());
+            hotel.setStarLevel(dto.getStarLevel());
+            hotel.setDescription(dto.getDescription());
+            hotel.setTags(dto.getTags());
+            hotel.setCoverImage(dto.getCoverImage());
             hotelMapper.updateById(hotel);
             clearCache();
             redisTemplate.delete(HOTEL_DETAIL_KEY + id);
@@ -102,6 +109,7 @@ public class HotelService {
 
     public List<Hotel> recommend(String city, int limit) {
         LambdaQueryWrapper<Hotel> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Hotel::getStatus, 1);
         if (city != null && !city.isEmpty()) {
             wrapper.eq(Hotel::getCity, city);
         }
@@ -112,17 +120,18 @@ public class HotelService {
 
     public Page<Hotel> query(HotelQueryDTO queryDTO, int pageNum, int pageSize) {
         LambdaQueryWrapper<Hotel> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Hotel::getStatus, 1);
 
         if (queryDTO.getCity() != null && !queryDTO.getCity().isEmpty()) {
             wrapper.eq(Hotel::getCity, queryDTO.getCity());
         }
 
         if (queryDTO.getMinPrice() != null) {
-            wrapper.ge(Hotel::getPrice, queryDTO.getMinPrice());
+            wrapper.ge(Hotel::getPricePerNight, queryDTO.getMinPrice());
         }
 
         if (queryDTO.getMaxPrice() != null) {
-            wrapper.le(Hotel::getPrice, queryDTO.getMaxPrice());
+            wrapper.le(Hotel::getPricePerNight, queryDTO.getMaxPrice());
         }
 
         if (queryDTO.getSortBy() != null) {
@@ -134,9 +143,9 @@ public class HotelService {
                 }
             } else if ("price".equals(queryDTO.getSortBy())) {
                 if ("asc".equalsIgnoreCase(queryDTO.getSortOrder())) {
-                    wrapper.orderByAsc(Hotel::getPrice);
+                    wrapper.orderByAsc(Hotel::getPricePerNight);
                 } else {
-                    wrapper.orderByDesc(Hotel::getPrice);
+                    wrapper.orderByDesc(Hotel::getPricePerNight);
                 }
             }
         } else {

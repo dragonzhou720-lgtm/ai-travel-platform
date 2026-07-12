@@ -11,11 +11,17 @@ public class HotelDTO {
 
     private String city;
 
-    private BigDecimal price;
+    private String address;
+
+    private BigDecimal pricePerNight;
 
     private BigDecimal rating;
 
-    private String address;
+    private Integer starLevel;
 
-    private String imageUrl;
+    private String description;
+
+    private String tags;
+
+    private String coverImage;
 }

@@ -34,10 +34,14 @@ public class AttractionService {
         Attraction attraction = new Attraction();
         attraction.setName(dto.getName());
         attraction.setCity(dto.getCity());
-        attraction.setPrice(dto.getPrice());
+        attraction.setAddress(dto.getAddress());
+        attraction.setTicketPrice(dto.getTicketPrice());
         attraction.setRating(dto.getRating());
         attraction.setDescription(dto.getDescription());
-        attraction.setImageUrl(dto.getImageUrl());
+        attraction.setOpenTime(dto.getOpenTime());
+        attraction.setTags(dto.getTags());
+        attraction.setCoverImage(dto.getCoverImage());
+        attraction.setStatus(1);
         attractionMapper.insert(attraction);
         clearCache();
         return attraction;
@@ -49,10 +53,13 @@ public class AttractionService {
         if (attraction != null) {
             attraction.setName(dto.getName());
             attraction.setCity(dto.getCity());
-            attraction.setPrice(dto.getPrice());
+            attraction.setAddress(dto.getAddress());
+            attraction.setTicketPrice(dto.getTicketPrice());
             attraction.setRating(dto.getRating());
             attraction.setDescription(dto.getDescription());
-            attraction.setImageUrl(dto.getImageUrl());
+            attraction.setOpenTime(dto.getOpenTime());
+            attraction.setTags(dto.getTags());
+            attraction.setCoverImage(dto.getCoverImage());
             attractionMapper.updateById(attraction);
             clearCache();
             redisTemplate.delete(ATTRACTION_DETAIL_KEY + id);
@@ -102,17 +109,18 @@ public class AttractionService {
 
     public Page<Attraction> query(AttractionQueryDTO queryDTO, int pageNum, int pageSize) {
         LambdaQueryWrapper<Attraction> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Attraction::getStatus, 1);
 
         if (queryDTO.getCity() != null && !queryDTO.getCity().isEmpty()) {
             wrapper.eq(Attraction::getCity, queryDTO.getCity());
         }
 
         if (queryDTO.getMinPrice() != null) {
-            wrapper.ge(Attraction::getPrice, queryDTO.getMinPrice());
+            wrapper.ge(Attraction::getTicketPrice, queryDTO.getMinPrice());
         }
 
         if (queryDTO.getMaxPrice() != null) {
-            wrapper.le(Attraction::getPrice, queryDTO.getMaxPrice());
+            wrapper.le(Attraction::getTicketPrice, queryDTO.getMaxPrice());
         }
 
         if (queryDTO.getSortBy() != null) {
@@ -124,9 +132,9 @@ public class AttractionService {
                 }
             } else if ("price".equals(queryDTO.getSortBy())) {
                 if ("asc".equalsIgnoreCase(queryDTO.getSortOrder())) {
-                    wrapper.orderByAsc(Attraction::getPrice);
+                    wrapper.orderByAsc(Attraction::getTicketPrice);
                 } else {
-                    wrapper.orderByDesc(Attraction::getPrice);
+                    wrapper.orderByDesc(Attraction::getTicketPrice);
                 }
             }
         } else {

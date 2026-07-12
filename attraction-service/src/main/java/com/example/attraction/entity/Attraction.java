@@ -22,8 +22,11 @@ public class Attraction {
     @TableField("city")
     private String city;
 
-    @TableField("price")
-    private BigDecimal price;
+    @TableField("address")
+    private String address;
+
+    @TableField("ticket_price")
+    private BigDecimal ticketPrice;
 
     @TableField("rating")
     private BigDecimal rating;
@@ -31,8 +34,17 @@ public class Attraction {
     @TableField("description")
     private String description;
 
-    @TableField("image_url")
-    private String imageUrl;
+    @TableField("open_time")
+    private String openTime;
+
+    @TableField("tags")
+    private String tags;
+
+    @TableField("cover_image")
+    private String coverImage;
+
+    @TableField("status")
+    private Integer status;
 
     @TableField("created_at")
     private LocalDateTime createdAt;

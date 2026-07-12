@@ -74,33 +74,40 @@ public class HotelService {
         redisTemplate.delete(HOTEL_DETAIL_KEY + id);
     }
 
-    @SuppressWarnings("unchecked")
     public Hotel getById(Long id) {
         String key = HOTEL_DETAIL_KEY + id;
-        if (redisTemplate.hasKey(key)) {
-            return (Hotel) redisTemplate.opsForValue().get(key);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+            Object cached = redisTemplate.opsForValue().get(key);
+            if (cached instanceof Hotel) {
+                return (Hotel) cached;
+            }
         }
         Hotel hotel = hotelMapper.selectById(id);
+
         if (hotel != null) {
             redisTemplate.opsForValue().set(key, hotel, CACHE_EXPIRE_TIME, TimeUnit.MINUTES);
         }
         return hotel;
     }
 
-    @SuppressWarnings("unchecked")
     public List<String> getAllCities() {
-        if (redisTemplate.hasKey(ALL_CITIES_KEY)) {
-            return (List<String>) redisTemplate.opsForValue().get(ALL_CITIES_KEY);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(ALL_CITIES_KEY))) {
+            Object cached = redisTemplate.opsForValue().get(ALL_CITIES_KEY);
+            if (cached instanceof List) {
+                return (List<String>) cached;
+            }
         }
         List<String> cities = hotelMapper.findAllCities();
         redisTemplate.opsForValue().set(ALL_CITIES_KEY, cities, CACHE_EXPIRE_TIME, TimeUnit.MINUTES);
         return cities;
     }
 
-    @SuppressWarnings("unchecked")
     public List<Hotel> getHotHotels(int limit) {
-        if (redisTemplate.hasKey(HOT_HOTEL_KEY)) {
-            return (List<Hotel>) redisTemplate.opsForValue().get(HOT_HOTEL_KEY);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(HOT_HOTEL_KEY))) {
+            Object cached = redisTemplate.opsForValue().get(HOT_HOTEL_KEY);
+            if (cached instanceof List) {
+                return (List<Hotel>) cached;
+            }
         }
         List<Hotel> hotels = hotelMapper.findHotHotels(limit);
         redisTemplate.opsForValue().set(HOT_HOTEL_KEY, hotels, CACHE_EXPIRE_TIME, TimeUnit.MINUTES);

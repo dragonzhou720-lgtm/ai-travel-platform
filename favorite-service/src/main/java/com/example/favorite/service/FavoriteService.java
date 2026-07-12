@@ -53,10 +53,10 @@ public class FavoriteService {
 
     public List<Favorite> getFavorites(Long userId) {
         String key = USER_FAVORITES_KEY + userId;
-        if (redisTemplate.hasKey(key)) {
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
             String json = redisTemplate.opsForValue().get(key);
             try {
-                return objectMapper.readValue(json, new TypeReference<List<Favorite>>() {});
+                return objectMapper.readValue(json, new TypeReference<>() {});
             } catch (JsonProcessingException e) {
                 redisTemplate.delete(key);
             }
@@ -66,16 +66,17 @@ public class FavoriteService {
             String json = objectMapper.writeValueAsString(favorites);
             redisTemplate.opsForValue().set(key, json, CACHE_EXPIRE_TIME, TimeUnit.MINUTES);
         } catch (JsonProcessingException e) {
+            // ignore serialization error, fall back to DB
         }
         return favorites;
     }
 
     public List<Favorite> getFavoritesByType(Long userId, String targetType) {
         String key = USER_FAVORITES_KEY + userId + ":" + targetType;
-        if (redisTemplate.hasKey(key)) {
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
             String json = redisTemplate.opsForValue().get(key);
             try {
-                return objectMapper.readValue(json, new TypeReference<List<Favorite>>() {});
+                return objectMapper.readValue(json, new TypeReference<>() {});
             } catch (JsonProcessingException e) {
                 redisTemplate.delete(key);
             }
@@ -85,6 +86,7 @@ public class FavoriteService {
             String json = objectMapper.writeValueAsString(favorites);
             redisTemplate.opsForValue().set(key, json, CACHE_EXPIRE_TIME, TimeUnit.MINUTES);
         } catch (JsonProcessingException e) {
+            // ignore serialization error, fall back to DB
         }
         return favorites;
     }

@@ -74,11 +74,13 @@ public class AttractionService {
         redisTemplate.delete(ATTRACTION_DETAIL_KEY + id);
     }
 
-    @SuppressWarnings("unchecked")
     public Attraction getById(Long id) {
         String key = ATTRACTION_DETAIL_KEY + id;
-        if (redisTemplate.hasKey(key)) {
-            return (Attraction) redisTemplate.opsForValue().get(key);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+            Object cached = redisTemplate.opsForValue().get(key);
+            if (cached instanceof Attraction) {
+                return (Attraction) cached;
+            }
         }
         Attraction attraction = attractionMapper.selectById(id);
         if (attraction != null) {
@@ -87,20 +89,24 @@ public class AttractionService {
         return attraction;
     }
 
-    @SuppressWarnings("unchecked")
     public List<String> getAllCities() {
-        if (redisTemplate.hasKey(ALL_CITIES_KEY)) {
-            return (List<String>) redisTemplate.opsForValue().get(ALL_CITIES_KEY);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(ALL_CITIES_KEY))) {
+            Object cached = redisTemplate.opsForValue().get(ALL_CITIES_KEY);
+            if (cached instanceof List) {
+                return (List<String>) cached;
+            }
         }
         List<String> cities = attractionMapper.findAllCities();
         redisTemplate.opsForValue().set(ALL_CITIES_KEY, cities, CACHE_EXPIRE_TIME, TimeUnit.MINUTES);
         return cities;
     }
 
-    @SuppressWarnings("unchecked")
     public List<Attraction> getHotAttractions(int limit) {
-        if (redisTemplate.hasKey(HOT_ATTRACTION_KEY)) {
-            return (List<Attraction>) redisTemplate.opsForValue().get(HOT_ATTRACTION_KEY);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(HOT_ATTRACTION_KEY))) {
+            Object cached = redisTemplate.opsForValue().get(HOT_ATTRACTION_KEY);
+            if (cached instanceof List) {
+                return (List<Attraction>) cached;
+            }
         }
         List<Attraction> attractions = attractionMapper.findHotAttractions(limit);
         redisTemplate.opsForValue().set(HOT_ATTRACTION_KEY, attractions, CACHE_EXPIRE_TIME, TimeUnit.MINUTES);

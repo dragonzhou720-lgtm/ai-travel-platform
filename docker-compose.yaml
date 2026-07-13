@@ -8,7 +8,7 @@ services:
       MYSQL_DATABASE: travel_platform
       TZ: Asia/Shanghai
     ports:
-      - "3308:3306"
+      - "3309:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./sql:/docker-entrypoint-initdb.d:ro
@@ -30,18 +30,20 @@ services:
     restart: unless-stopped
     environment:
       MODE: standalone
-      PREFER_HOST_MODE: hostname
+      PREFER_HOST_MODE: ip
       JVM_XMS: 512m
       JVM_XMX: 512m
       JVM_XMN: 256m
       TZ: Asia/Shanghai
     ports:
       - "8848:8848"
+      - "9848:9848"
+      - "9849:9849"
     volumes:
       - nacos_data:/home/nacos/data
       - nacos_logs:/home/nacos/logs
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8848/nacos/actuator/health || wget -qO- http://127.0.0.1:8848/nacos/actuator/health >/dev/null"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8848/nacos/v1/ns/operator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 20
@@ -82,99 +84,6 @@ services:
       timeout: 10s
       retries: 10
       start_period: 30s
-
-  attraction-service:
-    build:
-      context: .
-      dockerfile: ./attraction-service/Dockerfile
-    container_name: travel-platform-attraction
-    restart: unless-stopped
-    ports:
-      - "8084:8084"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 123456
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PASSWORD: 123456
-      SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
-      SPRING_CLOUD_NACOS_CONFIG_SERVER-ADDR: nacos:8848
-      TZ: Asia/Shanghai
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      nacos:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8084/api/attractions/cities"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
-
-  hotel-service:
-    build:
-      context: .
-      dockerfile: ./hotel-service/Dockerfile
-    container_name: travel-platform-hotel
-    restart: unless-stopped
-    ports:
-      - "8085:8085"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 123456
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PASSWORD: 123456
-      SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
-      SPRING_CLOUD_NACOS_CONFIG_SERVER-ADDR: nacos:8848
-      TZ: Asia/Shanghai
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      nacos:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8085/api/hotels/cities"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
-
-  favorite-service:
-    build:
-      context: .
-      dockerfile: ./favorite-service/Dockerfile
-    container_name: travel-platform-favorite
-    restart: unless-stopped
-    ports:
-      - "8086:8086"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 123456
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PASSWORD: 123456
-      SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
-      SPRING_CLOUD_NACOS_CONFIG_SERVER-ADDR: nacos:8848
-      TZ: Asia/Shanghai
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      nacos:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8086/api/favorites/user/1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
 
 volumes:
   mysql_data:

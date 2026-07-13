@@ -1,34 +1,25 @@
 server:
   port: 8085
-  servlet:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
 
 spring:
   application:
     name: hotel-service
   datasource:
-    url: jdbc:mysql://localhost:3308/travel_platform?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3309/travel_platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
   cloud:
     nacos:
       discovery:
+        enabled: true
         server-addr: localhost:8848
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password: 123456
-      timeout: 10000ms
+        ip: 127.0.0.1
+      config:
+        enabled: false
+    sentinel:
+      enabled: false
 
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-  global-config:
-    db-config:
-      id-type: auto
+logging:
+  level:
+    com.example.hotel: DEBUG

@@ -61,3 +61,18 @@ buildNumber.properties
 *.jar
 *.war
 *.ear
+
+### Environment ###
+.env
+.env.local
+.env.*.local
+
+### Data Directories ###
+redis-data/
+mysql-data/
+nacos-data/
+nacos-logs/
+rabbitmq-data/
+
+### Documentation ###
+docs/

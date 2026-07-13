@@ -1,10 +1,5 @@
 server:
   port: 8080
-  servlet:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
 
 spring:
   application:
@@ -12,14 +7,16 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848
+        enabled: true
+        server-addr: localhost:8848
+        ip: 127.0.0.1
       config:
-        server-addr: 127.0.0.1:8848
-        file-extension: yml
+        enabled: false
     gateway:
       discovery:
         locator:
-          enabled: false
+          enabled: true
+          lower-case-service-id: true
       routes:
         - id: user-service
           uri: lb://user-service
@@ -29,21 +26,32 @@ spring:
           uri: lb://ai-service
           predicates:
             - Path=/api/ai/**
+          filters:
+            - JwtAuthenticationFilter
         - id: route-service
           uri: lb://route-service
           predicates:
             - Path=/api/route/**
+          filters:
+            - JwtAuthenticationFilter
         - id: attraction-service
           uri: lb://attraction-service
           predicates:
             - Path=/api/attraction/**
+          filters:
+            - JwtAuthenticationFilter
         - id: hotel-service
           uri: lb://hotel-service
           predicates:
             - Path=/api/hotel/**
+          filters:
+            - JwtAuthenticationFilter
         - id: favorite-service
           uri: lb://favorite-service
           predicates:
             - Path=/api/favorite/**
-      default-filters:
-        - StripPrefix=1
+          filters:
+            - JwtAuthenticationFilter
+
+jwt:
+  secret: travel-platform-jwt-secret-key-2024-must-be-at-least-256-bits-long-for-hs256-algorithm

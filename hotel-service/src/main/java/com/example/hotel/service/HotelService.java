@@ -1,170 +1,53 @@
 package com.example.hotel.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.hotel.dto.HotelDTO;
-import com.example.hotel.dto.HotelQueryDTO;
-import com.example.hotel.entity.Hotel;
-import com.example.hotel.mapper.HotelMapper;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class HotelService {
 
-    private final HotelMapper hotelMapper;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final Map<Long, Map<String, Object>> hotelStore = new ConcurrentHashMap<>();
 
-    private static final String HOT_HOTEL_KEY = "hotel:hot";
-    private static final String ALL_CITIES_KEY = "hotel:cities";
-    private static final String HOTEL_DETAIL_KEY = "hotel:detail:";
-    private static final long CACHE_EXPIRE_TIME = 30;
-
-    public HotelService(HotelMapper hotelMapper, RedisTemplate<String, Object> redisTemplate) {
-        this.hotelMapper = hotelMapper;
-        this.redisTemplate = redisTemplate;
+    public HotelService() {
+        initMockData();
     }
 
-    @Transactional
-    public Hotel create(HotelDTO dto) {
-        Hotel hotel = new Hotel();
-        hotel.setName(dto.getName());
-        hotel.setCity(dto.getCity());
-        hotel.setAddress(dto.getAddress());
-        hotel.setPricePerNight(dto.getPricePerNight());
-        hotel.setRating(dto.getRating());
-        hotel.setStarLevel(dto.getStarLevel());
-        hotel.setDescription(dto.getDescription());
-        hotel.setTags(dto.getTags());
-        hotel.setCoverImage(dto.getCoverImage());
-        hotel.setStatus(1);
-        hotelMapper.insert(hotel);
-        clearCache();
-        return hotel;
+    private void initMockData() {
+        addHotel(1L, "Beijing", "Beijing Hotel", "5-star", 4.8, "Luxury hotel near Tiananmen");
+        addHotel(2L, "Beijing", "Shangri-La", "5-star", 4.7, "International luxury brand");
+        addHotel(3L, "Beijing", "Holiday Inn", "4-star", 4.5, "Comfortable business hotel");
+        addHotel(4L, "Shanghai", "Peace Hotel", "5-star", 4.9, "Historic landmark");
+        addHotel(5L, "Shanghai", "The Peninsula", "5-star", 4.8, "Luxury hotel");
+        addHotel(6L, "Shanghai", "Hilton", "4-star", 4.6, "International brand");
+        addHotel(7L, "Hangzhou", "West Lake State Guest House", "5-star", 4.9, "Scenic hotel");
+        addHotel(8L, "Hangzhou", "Four Seasons", "5-star", 4.8, "Luxury resort");
+        addHotel(9L, "Chengdu", "Ritz Carlton", "5-star", 4.7, "Luxury hotel");
+        addHotel(10L, "Chengdu", "InterContinental", "5-star", 4.6, "International brand");
     }
 
-    @Transactional
-    public Hotel update(Long id, HotelDTO dto) {
-        Hotel hotel = hotelMapper.selectById(id);
-        if (hotel != null) {
-            hotel.setName(dto.getName());
-            hotel.setCity(dto.getCity());
-            hotel.setAddress(dto.getAddress());
-            hotel.setPricePerNight(dto.getPricePerNight());
-            hotel.setRating(dto.getRating());
-            hotel.setStarLevel(dto.getStarLevel());
-            hotel.setDescription(dto.getDescription());
-            hotel.setTags(dto.getTags());
-            hotel.setCoverImage(dto.getCoverImage());
-            hotelMapper.updateById(hotel);
-            clearCache();
-            redisTemplate.delete(HOTEL_DETAIL_KEY + id);
-        }
-        return hotel;
+    private void addHotel(Long id, String city, String name, String star, double rating, String description) {
+        Map<String, Object> hotel = new HashMap<>();
+        hotel.put("id", id);
+        hotel.put("city", city);
+        hotel.put("name", name);
+        hotel.put("star", star);
+        hotel.put("rating", rating);
+        hotel.put("description", description);
+        hotelStore.put(id, hotel);
     }
 
-    @Transactional
-    public void delete(Long id) {
-        hotelMapper.deleteById(id);
-        clearCache();
-        redisTemplate.delete(HOTEL_DETAIL_KEY + id);
+    public List<Map<String, Object>> searchHotels(String city, String keyword) {
+        return hotelStore.values().stream()
+                .filter(h -> city.equalsIgnoreCase((String) h.get("city")))
+                .filter(h -> keyword == null || keyword.isEmpty() ||
+                        ((String) h.get("name")).toLowerCase().contains(keyword.toLowerCase()) ||
+                        ((String) h.get("description")).toLowerCase().contains(keyword.toLowerCase()))
+                .toList();
     }
 
-    public Hotel getById(Long id) {
-        String key = HOTEL_DETAIL_KEY + id;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
-            Object cached = redisTemplate.opsForValue().get(key);
-            if (cached instanceof Hotel) {
-                return (Hotel) cached;
-            }
-        }
-        Hotel hotel = hotelMapper.selectById(id);
-
-        if (hotel != null) {
-            redisTemplate.opsForValue().set(key, hotel, CACHE_EXPIRE_TIME, TimeUnit.MINUTES);
-        }
-        return hotel;
-    }
-
-    public List<String> getAllCities() {
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(ALL_CITIES_KEY))) {
-            Object cached = redisTemplate.opsForValue().get(ALL_CITIES_KEY);
-            if (cached instanceof List) {
-                return (List<String>) cached;
-            }
-        }
-        List<String> cities = hotelMapper.findAllCities();
-        redisTemplate.opsForValue().set(ALL_CITIES_KEY, cities, CACHE_EXPIRE_TIME, TimeUnit.MINUTES);
-        return cities;
-    }
-
-    public List<Hotel> getHotHotels(int limit) {
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(HOT_HOTEL_KEY))) {
-            Object cached = redisTemplate.opsForValue().get(HOT_HOTEL_KEY);
-            if (cached instanceof List) {
-                return (List<Hotel>) cached;
-            }
-        }
-        List<Hotel> hotels = hotelMapper.findHotHotels(limit);
-        redisTemplate.opsForValue().set(HOT_HOTEL_KEY, hotels, CACHE_EXPIRE_TIME, TimeUnit.MINUTES);
-        return hotels;
-    }
-
-    public List<Hotel> recommend(String city, int limit) {
-        LambdaQueryWrapper<Hotel> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Hotel::getStatus, 1);
-        if (city != null && !city.isEmpty()) {
-            wrapper.eq(Hotel::getCity, city);
-        }
-        wrapper.orderByDesc(Hotel::getRating);
-        wrapper.last("LIMIT " + limit);
-        return hotelMapper.selectList(wrapper);
-    }
-
-    public Page<Hotel> query(HotelQueryDTO queryDTO, int pageNum, int pageSize) {
-        LambdaQueryWrapper<Hotel> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Hotel::getStatus, 1);
-
-        if (queryDTO.getCity() != null && !queryDTO.getCity().isEmpty()) {
-            wrapper.eq(Hotel::getCity, queryDTO.getCity());
-        }
-
-        if (queryDTO.getMinPrice() != null) {
-            wrapper.ge(Hotel::getPricePerNight, queryDTO.getMinPrice());
-        }
-
-        if (queryDTO.getMaxPrice() != null) {
-            wrapper.le(Hotel::getPricePerNight, queryDTO.getMaxPrice());
-        }
-
-        if (queryDTO.getSortBy() != null) {
-            if ("rating".equals(queryDTO.getSortBy())) {
-                if ("asc".equalsIgnoreCase(queryDTO.getSortOrder())) {
-                    wrapper.orderByAsc(Hotel::getRating);
-                } else {
-                    wrapper.orderByDesc(Hotel::getRating);
-                }
-            } else if ("price".equals(queryDTO.getSortBy())) {
-                if ("asc".equalsIgnoreCase(queryDTO.getSortOrder())) {
-                    wrapper.orderByAsc(Hotel::getPricePerNight);
-                } else {
-                    wrapper.orderByDesc(Hotel::getPricePerNight);
-                }
-            }
-        } else {
-            wrapper.orderByDesc(Hotel::getRating);
-        }
-
-        Page<Hotel> page = new Page<>(pageNum, pageSize);
-        return hotelMapper.selectPage(page, wrapper);
-    }
-
-    private void clearCache() {
-        redisTemplate.delete(HOT_HOTEL_KEY);
-        redisTemplate.delete(ALL_CITIES_KEY);
+    public Map<String, Object> getHotelDetail(Long id) {
+        return hotelStore.get(id);
     }
 }

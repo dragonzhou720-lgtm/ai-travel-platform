@@ -1,16 +1,11 @@
 server:
   port: 8083
-  servlet:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
 
 spring:
   application:
     name: route-service
   datasource:
-    url: jdbc:mysql://127.0.0.1:3309/travel_platform?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3309/travel_platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -19,10 +14,24 @@ spring:
     port: 5672
     username: guest
     password: guest
+    virtual-host: /
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000
   cloud:
     nacos:
       discovery:
-        enabled: false
-        register-enabled: false
+        enabled: true
+        server-addr: localhost:8848
+        ip: 127.0.0.1
       config:
         enabled: false
+    sentinel:
+      enabled: false
+
+logging:
+  level:
+    com.example.route: DEBUG

@@ -45,4 +45,19 @@ public class UserService implements UserDetailsService {
         String encodedPassword = userStore.get(username);
         return encodedPassword != null && passwordEncoder.matches(password, encodedPassword);
     }
+
+    public boolean exists(String username) {
+        return userStore.containsKey(username);
+    }
+
+    public boolean register(String username, String password) {
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
+            return false;
+        }
+        if (userStore.containsKey(username)) {
+            return false;
+        }
+        userStore.put(username, passwordEncoder.encode(password));
+        return true;
+    }
 }

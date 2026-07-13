@@ -26,280 +26,142 @@
 - `hotel-service`：酒店服务
 - `favorite-service`：收藏服务
 
-## 当前完成情况
+## 成员工作完成情况
 
-### 已完成
+### 成员C - 系统架构与AI核心开发 ✅
+
+| 序号 | 工作内容 | 完成状态 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 1 | Nacos注册中心搭建 | ✅ | 服务注册/发现/配置管理 |
+| 2 | Gateway网关服务开发 | ✅ | 路由转发、Token认证、权限校验、统一异常处理 |
+| 3 | User-Service开发 | ✅ | 用户注册/登录/JWT认证/用户信息管理 |
+| 4 | AI-Service开发 | ✅ | 接入DeepSeek大语言模型，根据目的地/预算/天数/偏好生成路线 |
+| 5 | Route-Service开发 | ✅ | 路线生成/保存/历史查询/热门统计 |
+| 6 | OpenFeign服务调用 | ✅ | Route→AI/Attraction/Hotel跨服务调用 |
+| 7 | RabbitMQ消息队列 | ✅ | 异步处理：路线生成通知、热门统计、历史保存 |
+| 8 | Sentinel熔断降级 | ✅ | 限流/熔断/降级，AI异常时返回预设方案 |
+| 9 | Docker Compose部署 | ✅ | MySQL/Nacos/Gateway/RabbitMQ/Redis/微服务容器整合 |
+| 10 | 测试与文档编写 | ✅ | 系统架构设计文档、微服务拆分设计、服务治理设计等 |
+
+### 成员B - 旅游资源服务模块 ✅
+
+| 服务 | 完成状态 | 说明 |
+| :--- | :--- | :--- |
+| Attraction-Service 景点服务 | ✅ | 景点CRUD、分页查询、热门景点、城市列表 |
+| Hotel-Service 酒店服务 | ✅ | 酒店CRUD、分页查询、热门酒店、城市列表、推荐 |
+| Favorite-Service 收藏服务 | ✅ | 添加/删除收藏、用户收藏列表、类型筛选、检查收藏 |
+| Redis缓存实现 | ✅ | 景点/酒店/收藏缓存 |
+| Docker镜像构建 | ✅ | 三个业务服务Dockerfile |
+
+## 已完成功能
 
 - Maven 多模块工程能够正常安装
 - `gateway-service` 已恢复并完善统一网关入口配置
-- `user-service` 已可本地启动
-- `user-service` 的 Nacos 本地启动冲突问题已处理
+- `user-service` 已可本地启动，Nacos本地启动冲突问题已处理
 - `user-service` 中的循环依赖问题已处理
 - Docker 编排已统一为 `compose.yaml`
 - 数据库建表与示例数据脚本已补充，并按微服务拆分为建表与初始化数据两份 SQL
 - 数据导入脚本已支持 UTF-8 流式导入，避免中文乱码
 - `route-service` 已可成功连接 Docker MySQL 并读取路线历史数据
 - `route-service`、`attraction-service`、`hotel-service`、`gateway-service`、`ai-service`、`favorite-service` 已补充 UTF-8 响应编码配置
+- `user-service` JwtAuthFilter 异常处理已完善（处理无效/空Bearer token）
+- `favorite-service` Redis密码配置已补充
 
-### 旅游资源服务模块（成员B负责）
+## 服务架构
 
-#### Attraction-Service 景点服务 ✅
+| 服务名称 | 端口 | 职责 |
+| :--- | :--- | :--- |
+| `gateway-service` | 8080 | API网关，路由转发与认证 |
+| `user-service` | 8081 | 用户服务，JWT认证 |
+| `ai-service` | 8082 | AI服务，DeepSeek接口 |
+| `route-service` | 8083 | 路线服务，路线生成与管理 |
+| `attraction-service` | 8084 | 景点服务 |
+| `hotel-service` | 8085 | 酒店服务 |
+| `favorite-service` | 8086 | 收藏服务 |
+| `common-module` | - | 公共模块 |
 
-已完成以下功能：
+## API接口文档
 
-| API接口 | 方法 | 功能说明 |
-|---------|------|----------|
-| `/api/attractions` | POST | 新增景点 |
-| `/api/attractions/{id}` | PUT | 修改景点 |
-| `/api/attractions/{id}` | DELETE | 删除景点 |
-| `/api/attractions` | GET | 景点查询（分页） |
-| `/api/attractions/{id}` | GET | 景点详情 |
-| `/api/attractions/hot` | GET | 热门景点 |
-| `/api/attractions/cities` | GET | 城市列表 |
+### 1. 用户服务 (User-Service)
 
-**查询支持参数**：
-- `city`：按城市筛选
-- `minPrice` / `maxPrice`：按价格区间筛选
-- `sortBy`：排序字段（`rating` / `price`）
-- `sortOrder`：排序方式（`asc` / `desc`）
-- `pageNum` / `pageSize`：分页参数
+| 接口 | 方法 | 认证 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `/api/user/register` | POST | 否 | 用户注册 |
+| `/api/user/login` | POST | 否 | 用户登录 |
+| `/api/user/info` | GET | 是 | 获取当前用户信息 |
+| `/api/user/{username}` | GET | 是 | 根据用户名查询用户 |
 
-#### Hotel-Service 酒店服务 ✅
+**POST /api/user/register**
 
-已完成以下功能：
-
-| API接口 | 方法 | 功能说明 |
-|---------|------|----------|
-| `/api/hotels` | POST | 新增酒店 |
-| `/api/hotels/{id}` | PUT | 修改酒店 |
-| `/api/hotels/{id}` | DELETE | 删除酒店 |
-| `/api/hotels` | GET | 酒店查询（分页） |
-| `/api/hotels/{id}` | GET | 酒店详情 |
-| `/api/hotels/hot` | GET | 热门酒店 |
-| `/api/hotels/cities` | GET | 城市列表 |
-| `/api/hotels/recommend` | GET | 酒店推荐 |
-
-**查询支持参数**：
-- `city`：按城市筛选
-- `minPrice` / `maxPrice`：按预算筛选
-- `sortBy`：排序字段（`rating` / `price`）
-- `sortOrder`：排序方式（`asc` / `desc`）
-- `pageNum` / `pageSize`：分页参数
-
-#### Favorite-Service 收藏服务 ✅
-
-已完成以下功能：
-
-| API接口 | 方法 | 功能说明 |
-|---------|------|----------|
-| `/api/favorites` | POST | 添加收藏（支持景点/酒店/路线） |
-| `/api/favorites` | DELETE | 删除收藏 |
-| `/api/favorites/user/{userId}` | GET | 用户收藏列表 |
-| `/api/favorites/user/{userId}/type/{targetType}` | GET | 按类型筛选收藏 |
-| `/api/favorites/check` | GET | 检查是否已收藏 |
-
-#### Redis 缓存实现 ✅
-
-各服务已实现以下缓存功能：
-
-**Attraction-Service**：
-- `attraction:hot`：热门景点缓存（30分钟）
-- `attraction:cities`：热门城市缓存（30分钟）
-- `attraction:detail:{id}`：景点详情缓存（30分钟）
-
-**Hotel-Service**：
-- `hotel:hot`：热门酒店缓存（30分钟）
-- `hotel:cities`：热门城市缓存（30分钟）
-- `hotel:detail:{id}`：酒店详情缓存（30分钟）
-
-**Favorite-Service**：
-- `favorite:user:{userId}`：用户收藏列表缓存（15分钟）
-
-#### Docker 镜像构建 ✅
-
-三个业务服务均已配置 Dockerfile 并支持通过 `docker-compose` 构建运行：
-
-| 服务 | Dockerfile | 端口 |
-|------|------------|------|
-| Attraction-Service | [attraction-service/Dockerfile](file:///d:/ai-travel-platform-main/attraction-service/Dockerfile) | 8084 |
-| Hotel-Service | [hotel-service/Dockerfile](file:///d:/ai-travel-platform-main/hotel-service/Dockerfile) | 8085 |
-| Favorite-Service | [favorite-service/Dockerfile](file:///d:/ai-travel-platform-main/favorite-service/Dockerfile) | 8086 |
-
-#### 数据库设计 ✅
-
-| 表名 | 字段 | 数据量 |
-|------|------|--------|
-| `attraction` | id, name, city, ticket_price, rating, description, cover_image, open_time, tags, status | 51条 |
-| `hotel` | id, name, city, price_per_night, rating, star_level, address, description, cover_image, tags, status | 36条 |
-| `favorite` | id, user_id, target_id, target_type, target_name, created_at | 20条 |
-
-#### 服务启动方式
-
-所有服务已集成到 `docker-compose.yaml`，可一键启动：
-
-```bash
-docker-compose up -d
+请求体：
+```json
+{
+  "username": "string",
+  "password": "string"
+}
 ```
 
-启动后访问地址：
-- 景点服务：`http://localhost:8084/api/attractions`
-- 酒店服务：`http://localhost:8085/api/hotels`
-- 收藏服务：`http://localhost:8086/api/favorites/user/1`
-
-### 当前状态说明
-
-- `user-service` 本地调试时已可正常启动到 `8081`
-- 如果本地已有实例运行，再次启动可能会出现 `8081` 端口占用
-- 当前 Docker MySQL 宿主机端口映射为 `3309`
-- 当前数据已成功导入并可被 `route-service` 读取
-- `route-service` 的历史路线接口已验证可返回正常中文
-- 由于 `compose.yaml` 使用独立容器环境，启动前请确保端口 `3309/8848/6379/5672/15672` 未被其他进程占用
-
-## Docker Compose 现状
-
-当前项目统一使用 `compose.yaml` 作为 Docker 编排文件，包含以下服务：
-
-- MySQL 8.0
-- Nacos 2.3.2（standalone）
-- Redis 7.2-alpine
-- RabbitMQ 3.12-management
-
-### 端口映射
-
-- MySQL：`3309 -> 3306`
-- Nacos：`8848 -> 8848`
-- Redis：`6379 -> 6379`
-- RabbitMQ：`5672 -> 5672`
-- RabbitMQ 管理界面：`15672 -> 15672`
-
-> 注意：当前 MySQL 宿主机端口映射为 `3309`。
-
-### 账号信息
-
-- MySQL root 密码：`123456`
-- MySQL 数据库：`travel_platform`
-- MySQL 宿主机端口：`3309`
-- Redis 密码：`123456`
-- RabbitMQ 默认账号：`guest / guest`
-
-### 数据库脚本与持久化说明
-
-项目已将数据库脚本统一放在 `sql/` 目录下，并通过 Docker 持久化 MySQL 数据卷，便于组员同步和联调：
-
-- `sql/00_create_tables.sql`：建表脚本
-- `sql/import_data.py`：UTF-8 分批导入脚本
-- `sql/import_data.ps1`：PowerShell 分批导入脚本
-- `sql/segments/01_user.sql`：用户数据
-- `sql/segments/02_attraction.sql`：景点数据
-- `sql/segments/03_hotel.sql`：酒店数据
-- `sql/segments/04_route.sql`：路线数据
-- `sql/segments/05_route_day.sql`：路线日程数据
-- `sql/segments/06_favorite.sql`：收藏数据
-- `sql/README.sql.md`：SQL 使用说明
-
-当前 `compose.yaml` 已将本地 `sql/` 目录挂载到 MySQL 容器的 `/docker-entrypoint-initdb.d`，因此在首次初始化空数据卷时会自动执行脚本。当前 MySQL 宿主机端口映射为 `3309`。
-
-#### 表与微服务对应关系
-
-- `user-service`：`user`
-- `attraction-service`：`attraction`
-- `hotel-service`：`hotel`
-- `favorite-service`：`favorite`
-- `route-service`：`route`、`route_day`
-- `ai-service`：复用 `route`、`route_day` 作为结果展示数据
-
-#### 数据规模与业务覆盖说明
-
-当前初始化数据已经覆盖平台核心业务链路，可支撑课程设计演示、接口联调和功能答辩。
-
-### 数据规模
-
-- `user`：20 条
-- `attraction`：51 条，覆盖上海、北京、杭州、成都、三亚、西安、厦门、广州等主要旅游城市
-- `hotel`：36 条，覆盖高端、商务、舒适、经济、民宿、青旅等不同类型
-- `route`：20 条，覆盖城市观光、历史文化、海滨度假、亲子游、美食游、摄影游、慢旅行等场景
-- `route_day`：70 条，覆盖多天完整行程
-- `favorite`：20 条，覆盖景点、酒店、路线三类收藏
-
-### 业务覆盖
-
-- 用户登录与认证测试
-- 景点浏览与推荐展示
-- 酒店查询与预算匹配
-- AI 旅游路线生成展示
-- 路线保存与历史查询
-- 收藏功能演示
-- RabbitMQ 异步消息联调
-- Sentinel 降级兜底联调
-- Docker MySQL 真实数据读写联调
-
-### 数据特征
-
-- 图片统一使用 `picsum.photos` 随机生成服务，便于演示和联调
-- 路线摘要已按更接近 AI 生成的风格重写
-- 景点城市分布更均衡，覆盖多个核心城市
-- 酒店价位更分层，适合预算筛选展示
-- 数据库中文已完成 UTF-8 重新导入与验证
-
-#### 同步与持久化建议
-
-- 组员统一拉取同一份仓库中的 SQL 脚本
-- MySQL 使用 Docker volume 持久化数据，避免容器重建后丢失
-- 如果需要重新导入初始化数据，可执行 `python sql/import_data.py`
-- 如果需要重新初始化 Docker 数据，可先执行 `docker compose down -v` 再重新启动
-- 前端仅依赖统一接口文档，不直接依赖数据库实现
-
-## 本地启动方式
-
-### 1. 启动基础设施
-
-在项目根目录执行：
-
-```bash
-docker compose up -d
+响应：
+```json
+{
+  "success": true,
+  "message": "注册成功"
+}
 ```
 
-### 2. 启动用户服务
+**POST /api/user/login**
 
-进入 `user-service` 目录后执行：
-
-```bash
-mvn spring-boot:run
+请求体：
+```json
+{
+  "username": "admin",
+  "password": "123456"
+}
 ```
 
-如果 `8081` 已占用，请先停止旧进程或更换端口。
-
-### 3. 启动其他服务
-
-其余微服务可按同样方式在各自模块目录执行：
-
-```bash
-mvn spring-boot:run
+响应：
+```json
+{
+  "token": "eyJhbGciOiJIUzUxMiJ9...",
+  "tokenType": "Bearer",
+  "expiresIn": 604800
+}
 ```
 
-## 当前已知情况
+**GET /api/user/info**
 
-### 1. Gateway 统一入口
+请求头：`Authorization: Bearer <token>`
 
-`gateway-service` 已配置统一路由入口，支持按以下路径转发：
+响应：
+```json
+{
+  "username": "admin",
+  "roles": [{"authority": "ROLE_ADMIN"}, {"authority": "ROLE_USER"}]
+}
+```
 
-- `/api/user/**` -> `user-service`
-- `/api/ai/**` -> `ai-service`
-- `/api/route/**` -> `route-service`
-- `/api/attraction/**` -> `attraction-service`
-- `/api/hotel/**` -> `hotel-service`
-- `/api/favorite/**` -> `favorite-service`
+**GET /api/user/{username}**
 
-统一入口用于让前端只访问网关，不直接调用各微服务地址。
+请求头：`Authorization: Bearer <token>`
 
-### 2. AI 核心规划接口
+响应：
+```json
+{
+  "username": "admin"
+}
+```
 
-`ai-service` 已补充核心旅游规划接口：
+### 2. AI服务 (AI-Service)
 
-- `POST /api/ai/plan`
+| 接口 | 方法 | 认证 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `/api/ai/plan` | POST | 是 | 生成旅游规划 |
+| `/api/ai/generate-route` | POST | 是 | 生成路线 |
+| `/api/ai/health` | GET | 否 | 健康检查 |
 
-#### 请求参数
+**POST /api/ai/plan**
 
+请求体：
 ```json
 {
   "destination": "上海",
@@ -309,8 +171,7 @@ mvn spring-boot:run
 }
 ```
 
-#### 响应字段
-
+响应字段：
 - `destination`：目的地
 - `days`：出行天数
 - `budget`：预算
@@ -319,23 +180,55 @@ mvn spring-boot:run
 - `recommendations`：推荐建议列表
 - `itinerary`：按天生成的行程安排
 
-#### 作用
+**POST /api/ai/generate-route**
 
-用于根据用户输入生成一份基础的旅游规划结果，后续可替换为真实的大模型接口调用。当前服务也已统一补充 UTF-8 响应编码，便于中文结果正确展示。
+请求体：
+```json
+{
+  "city": "北京",
+  "days": 3,
+  "style": "文化游"
+}
+```
 
-### 3. Route 路线保存与历史查询接口
+**GET /api/ai/health**
 
-`route-service` 已补充路线保存与历史查询接口，并使用 MySQL 持久化保存结果，同时增加 RabbitMQ 异步消息发布：
+响应：
+```json
+{
+  "status": "UP",
+  "service": "ai-service"
+}
+```
 
-- `POST /api/route/save`
-- `GET /api/route/history/{userId}`
+### 3. 路线服务 (Route-Service)
 
-#### `POST /api/route/save`
+| 接口 | 方法 | 认证 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `/api/route/generate` | POST | 是 | 生成路线 |
+| `/api/route/save` | POST | 是 | 保存路线 |
+| `/api/route/{id}` | GET | 是 | 获取路线详情 |
+| `/api/route` | GET | 是 | 获取所有路线 |
+| `/api/route/history/{userId}` | GET | 是 | 用户历史路线 |
+| `/api/route/hot` | GET | 是 | 获取热门路线 |
+| `/api/route/hot/count` | GET | 是 | 查询路线统计 |
+| `/api/route/sentinel-test` | POST | 是 | Sentinel测试 |
 
-用于保存一条旅游路线。
+**POST /api/route/generate**
 
-##### 请求参数
+请求体：
+```json
+{
+  "city": "北京",
+  "days": 3,
+  "style": "文化游",
+  "budget": 5000
+}
+```
 
+**POST /api/route/save**
+
+请求体：
 ```json
 {
   "userId": 1,
@@ -357,21 +250,15 @@ mvn spring-boot:run
 }
 ```
 
-##### 作用
+**GET /api/route/{id}**
 
-用于保存 AI 生成后的路线结果，方便历史查看与后续统计。保存成功后会向 RabbitMQ 发布路线创建事件，用于后续通知和统计处理。
+请求头：`Authorization: Bearer <token>`
 
+**GET /api/route/history/{userId}**
 
-#### `GET /api/route/history/{userId}`
+请求头：`Authorization: Bearer <token>`
 
-用于查询某个用户的历史路线列表。
-
-##### 路径参数
-
-- `userId`：用户 ID
-
-##### 响应字段
-
+响应字段：
 - `routeId`：路线 ID
 - `name`：路线名称
 - `destination`：目的地
@@ -381,54 +268,276 @@ mvn spring-boot:run
 - `aiSummary`：路线摘要
 - `createdAt`：创建时间
 
-#### 作用
+**GET /api/route/hot**
 
-用于历史记录页面展示和路线回看。
+请求参数：`limit` (可选，默认10)
 
-### 4. 目前的联调状态
+**GET /api/route/hot/count**
 
-- `user-service` 当前本地配置不依赖 Nacos 启动，方便开发调试
-- 启动 Nacos 后，如需恢复配置中心与服务注册，需要重新开启 Nacos 相关配置
-- `user-service` 使用 `JwtAuthFilter` + `SecurityConfig` 实现认证链路
-- `route-service` 已连接 Docker MySQL 并验证可读取历史路线数据
-- `attraction-service`、`hotel-service`、`gateway-service`、`ai-service`、`favorite-service` 已统一补充 UTF-8 响应编码
-- 当前仓库已经具备 Docker 数据导入、中文返回和历史查询联调能力
+请求参数：`city`, `days`, `style`
+
+### 4. 景点服务 (Attraction-Service)
+
+| 接口 | 方法 | 认证 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `/api/attractions` | POST | 是 | 新增景点 |
+| `/api/attractions/{id}` | PUT | 是 | 修改景点 |
+| `/api/attractions/{id}` | DELETE | 是 | 删除景点 |
+| `/api/attractions` | GET | 是 | 景点查询（分页） |
+| `/api/attractions/{id}` | GET | 是 | 景点详情 |
+| `/api/attractions/hot` | GET | 是 | 热门景点 |
+| `/api/attractions/cities` | GET | 是 | 城市列表 |
+
+**查询支持参数**：
+- `city`：按城市筛选
+- `minPrice` / `maxPrice`：按价格区间筛选
+- `sortBy`：排序字段（`rating` / `price`）
+- `sortOrder`：排序方式（`asc` / `desc`）
+- `pageNum` / `pageSize`：分页参数
+
+### 5. 酒店服务 (Hotel-Service)
+
+| 接口 | 方法 | 认证 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `/api/hotels` | POST | 是 | 新增酒店 |
+| `/api/hotels/{id}` | PUT | 是 | 修改酒店 |
+| `/api/hotels/{id}` | DELETE | 是 | 删除酒店 |
+| `/api/hotels` | GET | 是 | 酒店查询（分页） |
+| `/api/hotels/{id}` | GET | 是 | 酒店详情 |
+| `/api/hotels/hot` | GET | 是 | 热门酒店 |
+| `/api/hotels/cities` | GET | 是 | 城市列表 |
+| `/api/hotels/recommend` | GET | 是 | 酒店推荐 |
+
+**查询支持参数**：
+- `city`：按城市筛选
+- `minPrice` / `maxPrice`：按预算筛选
+- `sortBy`：排序字段（`rating` / `price`）
+- `sortOrder`：排序方式（`asc` / `desc`）
+- `pageNum` / `pageSize`：分页参数
+
+### 6. 收藏服务 (Favorite-Service)
+
+| 接口 | 方法 | 认证 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `/api/favorites` | POST | 是 | 添加收藏（支持景点/酒店/路线） |
+| `/api/favorites` | DELETE | 是 | 删除收藏 |
+| `/api/favorites/user/{userId}` | GET | 是 | 用户收藏列表 |
+| `/api/favorites/user/{userId}/type/{targetType}` | GET | 是 | 按类型筛选收藏 |
+| `/api/favorites/check` | GET | 是 | 检查是否已收藏 |
+
+**POST /api/favorites**
+
+请求体：
+```json
+{
+  "userId": 1,
+  "targetId": 2,
+  "targetType": "route"
+}
+```
+
+**DELETE /api/favorites**
+
+请求参数：`userId`, `targetId`, `targetType`
+
+**GET /api/favorites/check**
+
+请求参数：`userId`, `targetId`, `targetType`
+
+响应：
+```json
+{
+  "isFavorite": true
+}
+```
+
+## Docker Compose 现状
+
+当前项目统一使用 `compose.yaml` 作为 Docker 编排文件，包含以下服务：
+
+- MySQL 8.0
+- Nacos 2.3.2（standalone）
+- Redis 7.2-alpine
+- RabbitMQ 3.12-management
+
+### 端口映射
+
+- MySQL：`3309 -> 3306`
+- Nacos：`8848 -> 8848`
+- Redis：`6379 -> 6379`
+- RabbitMQ：`5672 -> 5672`
+- RabbitMQ 管理界面：`15672 -> 15672`
+
+### 账号信息
+
+- MySQL root 密码：`123456`
+- MySQL 数据库：`travel_platform`
+- Redis 密码：`123456`
+- RabbitMQ 默认账号：`guest / guest`
+
+### 数据库脚本与持久化
+
+项目已将数据库脚本统一放在 `sql/` 目录下：
+
+- `sql/00_create_tables.sql`：建表脚本
+- `sql/import_data.py`：UTF-8 分批导入脚本
+- `sql/segments/01_user.sql`：用户数据
+- `sql/segments/02_attraction.sql`：景点数据
+- `sql/segments/03_hotel.sql`：酒店数据
+- `sql/segments/04_route.sql`：路线数据
+- `sql/segments/05_route_day.sql`：路线日程数据
+- `sql/segments/06_favorite.sql`：收藏数据
+
+### 表与微服务对应关系
+
+- `user-service`：`user`
+- `attraction-service`：`attraction`
+- `hotel-service`：`hotel`
+- `favorite-service`：`favorite`
+- `route-service`：`route`、`route_day`
+- `ai-service`：复用 `route`、`route_day` 作为结果展示数据
+
+### 数据规模
+
+- `user`：20 条
+- `attraction`：51 条
+- `hotel`：36 条
+- `route`：20 条
+- `route_day`：70 条
+- `favorite`：20 条
+
+## 本地启动方式
+
+### 1. 启动基础设施
+
+```bash
+docker compose up -d
+```
+
+### 2. 启动用户服务
+
+```bash
+mvn -pl user-service spring-boot:run
+```
+
+### 3. 启动其他服务
+
+```bash
+mvn -pl ai-service spring-boot:run
+mvn -pl route-service spring-boot:run
+mvn -pl attraction-service spring-boot:run
+mvn -pl hotel-service spring-boot:run
+mvn -pl favorite-service spring-boot:run
+mvn -pl gateway-service spring-boot:run
+```
+
+### 4. 测试账号
+
+- 用户名：`admin` / 密码：`123456`
+- 用户名：`user` / 密码：`123456`
+
+## Gateway 统一入口
+
+`gateway-service` 已配置统一路由入口，支持按以下路径转发：
+
+- `/api/user/**` -> `user-service`
+- `/api/ai/**` -> `ai-service`
+- `/api/route/**` -> `route-service`
+- `/api/attraction/**` -> `attraction-service`
+- `/api/hotel/**` -> `hotel-service`
+- `/api/favorite/**` -> `favorite-service`
 
 ## 已修复的问题
 
 ### 1. 父工程依赖缺失
 
-之前 `user-service` 启动时报错：
-
-- `Could not find artifact com.example:travel-platform-backend:pom:1.0.0-SNAPSHOT`
-
-处理方式：
-
-- 先执行根工程安装，确保父 POM 进入本地仓库
+- 错误：`Could not find artifact com.example:travel-platform-backend:pom:1.0.0-SNAPSHOT`
+- 处理：先执行根工程安装，确保父 POM 进入本地仓库
 
 ### 2. Spring Cloud Nacos import 报错
 
-之前 `user-service` 启动时报错：
-
-- `No spring.config.import property has been defined`
-
-处理方式：
-
-- 本地调试阶段关闭了 Nacos 配置与注册依赖
+- 错误：`No spring.config.import property has been defined`
+- 处理：本地调试阶段关闭了 Nacos 配置与注册依赖，生产环境可重新开启
 
 ### 3. Spring Security 循环依赖
 
-之前 `user-service` 启动时报错：
+- 错误：`jwtAuthFilter -> userService -> securityConfig -> jwtAuthFilter`
+- 处理：调整了 `SecurityConfig` 中 `JwtAuthFilter` 的注入方式，解除循环依赖
 
-- `jwtAuthFilter -> userService -> securityConfig -> jwtAuthFilter`
+### 4. JwtAuthFilter 无效Token处理
 
-处理方式：
+- 问题：Postman 请求携带空的或无效的 Authorization 头（如 `Bearer `）时返回 500 错误
+- 处理：在 `JwtAuthFilter` 中添加了空token检查和 `JwtException` 异常捕获，无效token请求会继续过滤器链而不是抛出异常
 
-- 调整了 `SecurityConfig` 中 `JwtAuthFilter` 的注入方式，解除循环依赖
+### 5. Favorite-Service Redis密码缺失
 
+- 问题：Redis 启用了密码认证，但 `favorite-service` 配置中未提供密码，导致添加收藏时返回 500 错误
+- 处理：在 `favorite-service` 的 `application.yml` 中添加了 Redis 密码配置
 
+### 6. Route-Service 路线ID问题
 
-## 备注
+- 问题：`GET /api/route/1` 返回 404
+- 处理：数据库中路线ID从 2 开始，建议使用有效的路线ID测试
 
-本 README 反映的是当前项目的实际开发状态，后续随着微服务、配置中心和部署方案完善，可以继续更新为完整项目说明文档。
-# ai-travel-platform
+## Redis 缓存实现
+
+**Attraction-Service**：
+- `attraction:hot`：热门景点缓存（30分钟）
+- `attraction:cities`：热门城市缓存（30分钟）
+- `attraction:detail:{id}`：景点详情缓存（30分钟）
+
+**Hotel-Service**：
+- `hotel:hot`：热门酒店缓存（30分钟）
+- `hotel:cities`：热门城市缓存（30分钟）
+- `hotel:detail:{id}`：酒店详情缓存（30分钟）
+
+**Favorite-Service**：
+- `favorite:user:{userId}`：用户收藏列表缓存（15分钟）
+
+## RabbitMQ 异步消息
+
+Route-Service 通过 RabbitMQ 处理异步任务：
+- `route.generated.queue` - 路线生成通知
+- `hot.route.stats.queue` - 热门路线统计
+- `history.save.queue` - 历史记录保存
+
+## Sentinel 配置
+
+- Route-Service：10 QPS
+- AI-Service：5 QPS
+
+## 调用说明
+
+### 认证方式
+
+1. 通过 `/api/user/login` 获取 JWT Token
+2. 在后续请求的 Header 中携带 `Authorization: Bearer <token>`
+
+### 服务调用链
+
+```
+Gateway → Route-Service → AI-Service
+                        → Attraction-Service
+                        → Hotel-Service
+```
+
+## 目录结构
+
+```
+ai-travel-platform/
+├── common-module/          # 公共模块
+├── gateway-service/        # API网关
+├── user-service/           # 用户服务
+├── ai-service/             # AI服务
+├── route-service/          # 路线服务
+├── attraction-service/     # 景点服务
+├── hotel-service/          # 酒店服务
+├── favorite-service/       # 收藏服务
+├── sql/                    # 数据库脚本
+├── docker-compose.yaml     # Docker部署配置
+└── README.md               # 项目说明文档
+```
+
+## 许可证
+
+MIT License

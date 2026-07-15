@@ -37,4 +37,9 @@ public class AttractionController {
     public ResponseEntity<Map<String, Object>> health() {
         return ResponseEntity.ok(Map.of("status", "UP", "service", "attraction-service"));
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Map<String, Object>>> getAll() {
+        return ResponseEntity.ok(attractionService.getAllAttractions());
+    }
 }

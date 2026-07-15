@@ -4,6 +4,7 @@ import com.example.user.dto.LoginRequest;
 import com.example.user.dto.LoginResponse;
 import com.example.user.dto.RegisterRequest;
 import com.example.user.dto.RegisterResponse;
+import com.example.user.entity.User;
 import com.example.user.service.UserService;
 import com.example.user.util.JwtUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -89,21 +90,40 @@ public class UserController {
         }
         
         String username = authentication.getName();
+        User user = userService.getUserByUsername(username);
+        
         Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("username", username);
+        userInfo.put("id", user.getId());
+        userInfo.put("username", user.getUsername());
+        userInfo.put("nickname", user.getNickname());
+        userInfo.put("email", user.getEmail());
+        userInfo.put("phone", user.getPhone());
+        userInfo.put("avatar", user.getAvatar());
+        userInfo.put("gender", user.getGender());
+        userInfo.put("status", user.getStatus());
         userInfo.put("roles", authentication.getAuthorities());
+        userInfo.put("createdAt", user.getCreatedAt());
         
         return ResponseEntity.ok(userInfo);
     }
 
     @GetMapping("/{username}")
     public ResponseEntity<Map<String, Object>> getUserByUsername(@PathVariable String username) {
-        if (!userService.exists(username)) {
+        User user = userService.getUserByUsername(username);
+        if (user == null) {
             return ResponseEntity.notFound().build();
         }
         
         Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("username", username);
+        userInfo.put("id", user.getId());
+        userInfo.put("username", user.getUsername());
+        userInfo.put("nickname", user.getNickname());
+        userInfo.put("email", user.getEmail());
+        userInfo.put("phone", user.getPhone());
+        userInfo.put("avatar", user.getAvatar());
+        userInfo.put("gender", user.getGender());
+        userInfo.put("status", user.getStatus());
+        userInfo.put("createdAt", user.getCreatedAt());
         
         return ResponseEntity.ok(userInfo);
     }

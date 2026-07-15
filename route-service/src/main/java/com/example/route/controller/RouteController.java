@@ -51,6 +51,12 @@ public class RouteController {
         return ResponseEntity.ok(routeService.getHotRoutes(limit));
     }
 
+    @GetMapping("/hot/cities")
+    public ResponseEntity<List<Map<String, Object>>> getHotRoutesByCity(
+            @RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(routeService.getHotRoutesByCity(limit));
+    }
+
     @GetMapping("/hot/count")
     public ResponseEntity<Map<String, Object>> getHotRouteCount(
             @RequestParam String city,

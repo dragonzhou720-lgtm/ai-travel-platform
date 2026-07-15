@@ -16,4 +16,10 @@ public interface HotelMapper extends BaseMapper<Hotel> {
 
     @Select("SELECT * FROM hotel ORDER BY rating DESC LIMIT #{limit}")
     List<Hotel> findHotHotels(@Param("limit") Integer limit);
+
+    @Select("SELECT * FROM hotel WHERE city = #{city} AND status = 1")
+    List<Hotel> findByCity(@Param("city") String city);
+
+    @Select("SELECT * FROM hotel WHERE city = #{city} AND status = 1 AND (name LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))")
+    List<Hotel> findByCityAndKeyword(@Param("city") String city, @Param("keyword") String keyword);
 }

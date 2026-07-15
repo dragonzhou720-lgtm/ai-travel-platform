@@ -1,53 +1,74 @@
 package com.example.attraction.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.example.attraction.entity.Attraction;
+import com.example.attraction.mapper.AttractionMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @Service
 public class AttractionService {
 
-    private final Map<Long, Map<String, Object>> attractionStore = new ConcurrentHashMap<>();
+    private final AttractionMapper attractionMapper;
 
-    public AttractionService() {
-        initMockData();
-    }
-
-    private void initMockData() {
-        addAttraction(1L, "Beijing", "Great Wall", "historic", 4.9, "The Great Wall of China");
-        addAttraction(2L, "Beijing", "Forbidden City", "historic", 4.8, "Imperial palace complex");
-        addAttraction(3L, "Beijing", "Summer Palace", "nature", 4.7, "Royal garden");
-        addAttraction(4L, "Shanghai", "Bund", "scenic", 4.8, "Famous waterfront");
-        addAttraction(5L, "Shanghai", "Yu Garden", "historic", 4.6, "Traditional Chinese garden");
-        addAttraction(6L, "Hangzhou", "West Lake", "nature", 4.9, "Beautiful lake scenery");
-        addAttraction(7L, "Hangzhou", "Lingyin Temple", "cultural", 4.7, "Ancient Buddhist temple");
-        addAttraction(8L, "Chengdu", "Dujiangyan", "historic", 4.8, "Ancient irrigation system");
-        addAttraction(9L, "Chengdu", "Jinli", "cultural", 4.5, "Ancient street");
-        addAttraction(10L, "Xi'an", "Terracotta Army", "historic", 4.9, "World famous museum");
-    }
-
-    private void addAttraction(Long id, String city, String name, String type, double rating, String description) {
-        Map<String, Object> attraction = new HashMap<>();
-        attraction.put("id", id);
-        attraction.put("city", city);
-        attraction.put("name", name);
-        attraction.put("type", type);
-        attraction.put("rating", rating);
-        attraction.put("description", description);
-        attractionStore.put(id, attraction);
+    public AttractionService(AttractionMapper attractionMapper) {
+        this.attractionMapper = attractionMapper;
     }
 
     public List<Map<String, Object>> searchAttractions(String city, String keyword) {
-        return attractionStore.values().stream()
-                .filter(a -> city.equalsIgnoreCase((String) a.get("city")))
-                .filter(a -> keyword == null || keyword.isEmpty() ||
-                        ((String) a.get("name")).toLowerCase().contains(keyword.toLowerCase()) ||
-                        ((String) a.get("description")).toLowerCase().contains(keyword.toLowerCase()))
-                .toList();
+        log.info("Searching attractions for city: {}, keyword: {}", city, keyword);
+        
+        LambdaQueryWrapper<Attraction> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Attraction::getStatus, 1);
+        
+        if (city != null && !city.isEmpty()) {
+            wrapper.eq(Attraction::getCity, city);
+            log.info("Adding city filter: {}", city);
+        }
+        
+        if (keyword != null && !keyword.isEmpty()) {
+            wrapper.and(w -> w.like(Attraction::getName, keyword).or().like(Attraction::getDescription, keyword));
+            log.info("Adding keyword filter: {}", keyword);
+        }
+        
+        List<Attraction> attractions = attractionMapper.selectList(wrapper);
+        log.info("Found {} attractions", attractions.size());
+        
+        return attractions.stream().map(this::toMap).toList();
     }
 
     public Map<String, Object> getAttractionDetail(Long id) {
-        return attractionStore.get(id);
+        Attraction attraction = attractionMapper.selectById(id);
+        return attraction != null ? toMap(attraction) : null;
+    }
+
+    public List<Map<String, Object>> getAllAttractions() {
+        log.info("Getting all attractions");
+        LambdaQueryWrapper<Attraction> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Attraction::getStatus, 1);
+        List<Attraction> attractions = attractionMapper.selectList(wrapper);
+        log.info("Found {} attractions total", attractions.size());
+        return attractions.stream().map(this::toMap).toList();
+    }
+
+    private Map<String, Object> toMap(Attraction attraction) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", attraction.getId());
+        map.put("name", attraction.getName());
+        map.put("city", attraction.getCity());
+        map.put("address", attraction.getAddress());
+        map.put("ticketPrice", attraction.getTicketPrice());
+        map.put("rating", attraction.getRating());
+        map.put("description", attraction.getDescription());
+        map.put("openTime", attraction.getOpenTime());
+        map.put("tags", attraction.getTags());
+        map.put("coverImage", attraction.getCoverImage());
+        map.put("status", attraction.getStatus());
+        return map;
     }
 }

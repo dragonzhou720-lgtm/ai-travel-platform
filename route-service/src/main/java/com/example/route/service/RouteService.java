@@ -9,6 +9,10 @@ import com.example.route.client.HotelClient;
 import com.example.route.config.SentinelConfig;
 import com.example.route.dto.RouteRequest;
 import com.example.route.dto.RouteResponse;
+import com.example.route.entity.Route;
+import com.example.route.entity.RouteDay;
+import com.example.route.mapper.RouteMapper;
+import com.example.route.mapper.RouteDayMapper;
 import com.example.route.rabbitmq.RouteMessageProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,17 +29,22 @@ public class RouteService {
     private final HotelClient hotelClient;
     private final AiClient aiClient;
     private final RouteMessageProducer routeMessageProducer;
+    private final RouteMapper routeMapper;
+    private final RouteDayMapper routeDayMapper;
 
     private final Map<Long, RouteResponse> routeStore = new ConcurrentHashMap<>();
     private final Map<String, Integer> hotRouteCounters = new ConcurrentHashMap<>();
+    private final Map<String, Integer> hotCityCounters = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
 
     public RouteService(AttractionClient attractionClient, HotelClient hotelClient, AiClient aiClient,
-                        RouteMessageProducer routeMessageProducer) {
+                        RouteMessageProducer routeMessageProducer, RouteMapper routeMapper, RouteDayMapper routeDayMapper) {
         this.attractionClient = attractionClient;
         this.hotelClient = hotelClient;
         this.aiClient = aiClient;
         this.routeMessageProducer = routeMessageProducer;
+        this.routeMapper = routeMapper;
+        this.routeDayMapper = routeDayMapper;
     }
 
     public RouteResponse generateRoute(RouteRequest request) {
@@ -95,7 +104,7 @@ public class RouteService {
                 hotels = generateFallbackHotels(city);
             }
 
-            List<Map<String, Object>> itinerary = generateItinerary(days, attractions != null ? attractions : new ArrayList<>(), 
+            List<Map<String, Object>> itinerary = generateItinerary(days, attractions != null ? attractions : new ArrayList<>(),
                     hotels != null ? hotels : new ArrayList<>(), style);
 
             RouteResponse route = RouteResponse.builder()
@@ -113,6 +122,7 @@ public class RouteService {
 
             String key = city + ":" + days + ":" + style;
             Integer count = hotRouteCounters.merge(key, 1, Integer::sum);
+            hotCityCounters.merge(city, 1, Integer::sum);
 
             routeMessageProducer.sendRouteGenerated(route);
             routeMessageProducer.sendHotRouteStats(city, days, style, count);
@@ -215,11 +225,95 @@ public class RouteService {
     }
 
     public RouteResponse getRouteById(Long id) {
-        return routeStore.get(id);
+        RouteResponse cachedRoute = routeStore.get(id);
+        if (cachedRoute != null) {
+            return cachedRoute;
+        }
+
+        Route dbRoute = routeMapper.selectById(id);
+        if (dbRoute != null) {
+            return convertToRouteResponse(dbRoute);
+        }
+
+        return null;
     }
 
     public List<RouteResponse> getAllRoutes() {
-        return new ArrayList<>(routeStore.values());
+        List<RouteResponse> cachedRoutes = new ArrayList<>(routeStore.values());
+        List<Route> dbRoutes = routeMapper.findAllRoutes();
+
+        for (Route dbRoute : dbRoutes) {
+            if (!routeStore.containsKey(dbRoute.getId())) {
+                cachedRoutes.add(convertToRouteResponse(dbRoute));
+            }
+        }
+
+        return cachedRoutes;
+    }
+
+    private RouteResponse convertToRouteResponse(Route route) {
+        List<RouteDay> routeDays = routeDayMapper.findByRouteId(route.getId());
+        
+        List<Map<String, Object>> itinerary = new ArrayList<>();
+        Set<Long> attractionIdSet = new HashSet<>();
+        Set<Long> hotelIdSet = new HashSet<>();
+        
+        for (RouteDay day : routeDays) {
+            Map<String, Object> dayMap = new HashMap<>();
+            dayMap.put("day", day.getDayNo());
+            dayMap.put("title", day.getTitle());
+            dayMap.put("scheduleDetail", day.getScheduleDetail());
+            itinerary.add(dayMap);
+            
+            if (day.getAttractionIds() != null && !day.getAttractionIds().isEmpty()) {
+                for (String idStr : day.getAttractionIds().split(",")) {
+                    try {
+                        attractionIdSet.add(Long.parseLong(idStr.trim()));
+                    } catch (NumberFormatException e) {
+                        log.warn("Invalid attraction id: {}", idStr);
+                    }
+                }
+            }
+            
+            if (day.getHotelId() != null) {
+                hotelIdSet.add(day.getHotelId());
+            }
+        }
+        
+        List<Map<String, Object>> attractions = new ArrayList<>();
+        for (Long attrId : attractionIdSet) {
+            try {
+                Map<String, Object> attr = attractionClient.getAttractionDetail(attrId);
+                if (attr != null) {
+                    attractions.add(attr);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to get attraction by id: {}", attrId, e);
+            }
+        }
+        
+        List<Map<String, Object>> hotels = new ArrayList<>();
+        for (Long hotelId : hotelIdSet) {
+            try {
+                Map<String, Object> hotel = hotelClient.getHotelDetail(hotelId);
+                if (hotel != null) {
+                    hotels.add(hotel);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to get hotel by id: {}", hotelId, e);
+            }
+        }
+        
+        return RouteResponse.builder()
+                .id(route.getId())
+                .city(route.getDestination())
+                .days(route.getDays())
+                .style(route.getPreference())
+                .itinerary(itinerary)
+                .attractions(attractions)
+                .hotels(hotels)
+                .createdAt(route.getCreatedAt() != null ? route.getCreatedAt().toLocalDate().toEpochDay() * 86400000 : System.currentTimeMillis())
+                .build();
     }
 
     public List<Map<String, Object>> getHotRoutes(int limit) {
@@ -241,5 +335,24 @@ public class RouteService {
     public Integer getHotRouteCount(String city, Integer days, String style) {
         String key = city + ":" + days + ":" + style;
         return hotRouteCounters.getOrDefault(key, 0);
+    }
+
+    public void incrementHotRouteCount(String city, Integer days, String style) {
+        String key = city + ":" + days + ":" + style;
+        hotRouteCounters.merge(key, 1, Integer::sum);
+        hotCityCounters.merge(city, 1, Integer::sum);
+    }
+
+    public List<Map<String, Object>> getHotRoutesByCity(int limit) {
+        return hotCityCounters.entrySet().stream()
+                .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                .limit(limit)
+                .map(entry -> {
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("city", entry.getKey());
+                    result.put("count", entry.getValue());
+                    return result;
+                })
+                .toList();
     }
 }

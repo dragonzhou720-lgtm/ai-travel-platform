@@ -1,53 +1,65 @@
 package com.example.hotel.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.example.hotel.entity.Hotel;
+import com.example.hotel.mapper.HotelMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @Service
 public class HotelService {
 
-    private final Map<Long, Map<String, Object>> hotelStore = new ConcurrentHashMap<>();
+    private final HotelMapper hotelMapper;
 
-    public HotelService() {
-        initMockData();
-    }
-
-    private void initMockData() {
-        addHotel(1L, "Beijing", "Beijing Hotel", "5-star", 4.8, "Luxury hotel near Tiananmen");
-        addHotel(2L, "Beijing", "Shangri-La", "5-star", 4.7, "International luxury brand");
-        addHotel(3L, "Beijing", "Holiday Inn", "4-star", 4.5, "Comfortable business hotel");
-        addHotel(4L, "Shanghai", "Peace Hotel", "5-star", 4.9, "Historic landmark");
-        addHotel(5L, "Shanghai", "The Peninsula", "5-star", 4.8, "Luxury hotel");
-        addHotel(6L, "Shanghai", "Hilton", "4-star", 4.6, "International brand");
-        addHotel(7L, "Hangzhou", "West Lake State Guest House", "5-star", 4.9, "Scenic hotel");
-        addHotel(8L, "Hangzhou", "Four Seasons", "5-star", 4.8, "Luxury resort");
-        addHotel(9L, "Chengdu", "Ritz Carlton", "5-star", 4.7, "Luxury hotel");
-        addHotel(10L, "Chengdu", "InterContinental", "5-star", 4.6, "International brand");
-    }
-
-    private void addHotel(Long id, String city, String name, String star, double rating, String description) {
-        Map<String, Object> hotel = new HashMap<>();
-        hotel.put("id", id);
-        hotel.put("city", city);
-        hotel.put("name", name);
-        hotel.put("star", star);
-        hotel.put("rating", rating);
-        hotel.put("description", description);
-        hotelStore.put(id, hotel);
+    public HotelService(HotelMapper hotelMapper) {
+        this.hotelMapper = hotelMapper;
     }
 
     public List<Map<String, Object>> searchHotels(String city, String keyword) {
-        return hotelStore.values().stream()
-                .filter(h -> city.equalsIgnoreCase((String) h.get("city")))
-                .filter(h -> keyword == null || keyword.isEmpty() ||
-                        ((String) h.get("name")).toLowerCase().contains(keyword.toLowerCase()) ||
-                        ((String) h.get("description")).toLowerCase().contains(keyword.toLowerCase()))
-                .toList();
+        log.info("Searching hotels for city: {}, keyword: {}", city, keyword);
+        
+        LambdaQueryWrapper<Hotel> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Hotel::getStatus, 1);
+        
+        if (city != null && !city.isEmpty()) {
+            wrapper.eq(Hotel::getCity, city);
+            log.info("Adding city filter: {}", city);
+        }
+        
+        if (keyword != null && !keyword.isEmpty()) {
+            wrapper.and(w -> w.like(Hotel::getName, keyword).or().like(Hotel::getDescription, keyword));
+            log.info("Adding keyword filter: {}", keyword);
+        }
+        
+        List<Hotel> hotels = hotelMapper.selectList(wrapper);
+        log.info("Found {} hotels", hotels.size());
+        
+        return hotels.stream().map(this::toMap).toList();
     }
 
     public Map<String, Object> getHotelDetail(Long id) {
-        return hotelStore.get(id);
+        Hotel hotel = hotelMapper.selectById(id);
+        return hotel != null ? toMap(hotel) : null;
+    }
+
+    private Map<String, Object> toMap(Hotel hotel) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", hotel.getId());
+        map.put("name", hotel.getName());
+        map.put("city", hotel.getCity());
+        map.put("address", hotel.getAddress());
+        map.put("pricePerNight", hotel.getPricePerNight());
+        map.put("rating", hotel.getRating());
+        map.put("star", hotel.getStarLevel() + "-star");
+        map.put("description", hotel.getDescription());
+        map.put("tags", hotel.getTags());
+        map.put("coverImage", hotel.getCoverImage());
+        map.put("status", hotel.getStatus());
+        return map;
     }
 }

@@ -66,6 +66,9 @@
 - `route-service`、`attraction-service`、`hotel-service`、`gateway-service`、`ai-service`、`favorite-service` 已补充 UTF-8 响应编码配置
 - `user-service` JwtAuthFilter 异常处理已完善（处理无效/空Bearer token）
 - `favorite-service` Redis密码配置已补充
+- SQL文件合并：将 `sql/segments/` 下的6个SQL文件合并为 `sql/ai_travel_platform_full.sql`
+- `route-service` 路线数据完善：创建 `RouteDay` 实体和 `RouteDayMapper`，从数据库查询关联的行程、景点和酒店数据
+- 热门路线统计修复：创建 `RouteInitializer` 在服务启动时从数据库初始化热门路线计数，添加 `/api/route/hot/cities` 按城市统计热门路线接口
 
 ## 服务架构
 
@@ -210,7 +213,8 @@
 | `/api/route/{id}` | GET | 是 | 获取路线详情 |
 | `/api/route` | GET | 是 | 获取所有路线 |
 | `/api/route/history/{userId}` | GET | 是 | 用户历史路线 |
-| `/api/route/hot` | GET | 是 | 获取热门路线 |
+| `/api/route/hot` | GET | 是 | 获取热门路线（按城市+天数+风格组合） |
+| `/api/route/hot/cities` | GET | 是 | 获取热门城市（按城市统计） |
 | `/api/route/hot/count` | GET | 是 | 查询路线统计 |
 | `/api/route/sentinel-test` | POST | 是 | Sentinel测试 |
 
@@ -271,6 +275,20 @@
 **GET /api/route/hot**
 
 请求参数：`limit` (可选，默认10)
+
+响应示例：
+```json
+[{"city":"上海","days":3,"style":"美食","count":2},{"city":"北京","days":5,"style":"历史文化","count":1}]
+```
+
+**GET /api/route/hot/cities**
+
+请求参数：`limit` (可选，默认10)
+
+响应示例：
+```json
+[{"city":"上海","count":3},{"city":"成都","count":2},{"city":"广州","count":2}]
+```
 
 **GET /api/route/hot/count**
 
@@ -379,6 +397,7 @@
 
 项目已将数据库脚本统一放在 `sql/` 目录下：
 
+- `sql/ai_travel_platform_full.sql`：合并后的完整数据库脚本（包含所有表结构和数据）
 - `sql/00_create_tables.sql`：建表脚本
 - `sql/import_data.py`：UTF-8 分批导入脚本
 - `sql/segments/01_user.sql`：用户数据
@@ -435,6 +454,7 @@ mvn -pl gateway-service spring-boot:run
 
 - 用户名：`admin` / 密码：`123456`
 - 用户名：`user` / 密码：`123456`
+- 用户名：`travel_lily` / 密码：`lily123`
 
 ## Gateway 统一入口
 

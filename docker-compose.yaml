@@ -7,6 +7,7 @@ services:
       MYSQL_ROOT_PASSWORD: '123456'
       MYSQL_DATABASE: travel_platform
       TZ: Asia/Shanghai
+      LANG: C.UTF-8
     ports:
       - "3309:3306"
     volumes:
@@ -16,6 +17,7 @@ services:
       - --default-authentication-plugin=mysql_native_password
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
+      - --init-connect=SET NAMES utf8mb4
       - --skip-name-resolve
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p123456"]
@@ -93,7 +95,7 @@ services:
     environment:
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
@@ -150,7 +152,7 @@ services:
     environment:
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
@@ -184,7 +186,7 @@ services:
     environment:
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
@@ -217,7 +219,7 @@ services:
     environment:
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
@@ -250,7 +252,7 @@ services:
     environment:
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/travel_platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848

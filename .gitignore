@@ -39,8 +39,8 @@ logs/
 
 ### Database ###
 *.db
-*.sql
 *.sql.gz
+!sql/**/*.sql
 
 ### OS ###
 .DS_Store

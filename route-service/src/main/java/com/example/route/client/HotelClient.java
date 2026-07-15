@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "hotel-service", url = "http://localhost:8085", fallback = HotelClientFallback.class)
+@FeignClient(name = "hotel-service", url = "http://hotel-service:8085", fallback = HotelClientFallback.class)
 public interface HotelClient {
 
     @GetMapping("/api/hotel/search")

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Map;
 
-@FeignClient(name = "ai-service", url = "http://localhost:8082", fallback = AiClientFallback.class)
+@FeignClient(name = "ai-service", url = "http://ai-service:8082", fallback = AiClientFallback.class)
 public interface AiClient {
 
     @PostMapping("/api/ai/generate-route")

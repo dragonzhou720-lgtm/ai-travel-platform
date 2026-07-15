@@ -59,4 +59,9 @@ public class RouteController {
         Integer count = routeService.getHotRouteCount(city, days, style);
         return ResponseEntity.ok(Map.of("city", city, "days", days, "style", style, "count", count));
     }
+
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, Object>> health() {
+        return ResponseEntity.ok(Map.of("status", "UP", "service", "route-service"));
+    }
 }

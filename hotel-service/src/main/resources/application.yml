@@ -5,18 +5,23 @@ spring:
   application:
     name: hotel-service
   datasource:
-    url: jdbc:mysql://localhost:3309/travel_platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-    username: root
-    password: 123456
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3309/travel_platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:123456}
   cloud:
     nacos:
       discovery:
-        enabled: true
-        server-addr: localhost:8848
-        ip: 127.0.0.1
+        enabled: ${SPRING_CLOUD_NACOS_DISCOVERY_ENABLED:true}
+        server-addr: ${SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR:localhost:8848}
+        ip: ${SPRING_CLOUD_NACOS_DISCOVERY_IP:127.0.0.1}
       config:
-        enabled: false
+        enabled: ${SPRING_CLOUD_NACOS_CONFIG_ENABLED:false}
     sentinel:
       enabled: false
 

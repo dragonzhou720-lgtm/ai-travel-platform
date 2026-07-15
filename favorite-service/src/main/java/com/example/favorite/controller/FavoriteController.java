@@ -63,4 +63,9 @@ public class FavoriteController {
         result.put("isFavorite", isFavorite);
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, Object>> health() {
+        return ResponseEntity.ok(Map.of("status", "UP", "service", "favorite-service"));
+    }
 }

@@ -7,11 +7,11 @@ spring:
   cloud:
     nacos:
       discovery:
-        enabled: true
-        server-addr: localhost:8848
-        ip: 127.0.0.1
+        enabled: ${SPRING_CLOUD_NACOS_DISCOVERY_ENABLED:true}
+        server-addr: ${SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR:localhost:8848}
+        ip: ${SPRING_CLOUD_NACOS_DISCOVERY_IP:127.0.0.1}
       config:
-        enabled: false
+        enabled: ${SPRING_CLOUD_NACOS_CONFIG_ENABLED:false}
     gateway:
       discovery:
         locator:
@@ -54,4 +54,10 @@ spring:
             - JwtAuthenticationFilter
 
 jwt:
-  secret: travel-platform-jwt-secret-key-2024-must-be-at-least-256-bits-long-for-hs256-algorithm
+  secret: ${JWT_SECRET:travel-platform-jwt-secret-key-2024-must-be-at-least-256-bits-long-for-hs256-algorithm}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

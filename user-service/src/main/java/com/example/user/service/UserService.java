@@ -1,5 +1,7 @@
 package com.example.user.service;
 
+import com.example.user.entity.User;
+import com.example.user.mapper.UserMapper;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -9,24 +11,22 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class UserService implements UserDetailsService {
 
-    private final Map<String, String> userStore = new ConcurrentHashMap<>();
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(PasswordEncoder passwordEncoder) {
+    public UserService(UserMapper userMapper, PasswordEncoder passwordEncoder) {
+        this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
-        userStore.put("admin", passwordEncoder.encode("123456"));
-        userStore.put("user", passwordEncoder.encode("123456"));
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        if (!userStore.containsKey(username)) {
+        User user = userMapper.findByUsername(username);
+        if (user == null) {
             throw new UsernameNotFoundException("User not found: " + username);
         }
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
@@ -35,29 +35,44 @@ public class UserService implements UserDetailsService {
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         }
         return new org.springframework.security.core.userdetails.User(
-                username,
-                userStore.get(username),
+                user.getUsername(),
+                user.getPassword(),
                 authorities
         );
     }
 
     public boolean validatePassword(String username, String password) {
-        String encodedPassword = userStore.get(username);
-        return encodedPassword != null && passwordEncoder.matches(password, encodedPassword);
+        User user = userMapper.findByUsername(username);
+        if (user == null) {
+            System.out.println("PASSWORD_VALIDATION user not found: " + username);
+            return false;
+        }
+        boolean matches = passwordEncoder.matches(password, user.getPassword());
+        System.out.println("PASSWORD_VALIDATION username=" + username + ", inputPassword=" + password + ", storedHash=" + user.getPassword() + ", matches=" + matches);
+        return matches;
     }
 
     public boolean exists(String username) {
-        return userStore.containsKey(username);
+        User user = userMapper.findByUsername(username);
+        return user != null;
     }
 
     public boolean register(String username, String password) {
         if (username == null || username.isBlank() || password == null || password.isBlank()) {
             return false;
         }
-        if (userStore.containsKey(username)) {
+        if (exists(username)) {
             return false;
         }
-        userStore.put(username, passwordEncoder.encode(password));
-        return true;
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setStatus(1);
+        user.setNickname(username);
+        return userMapper.insert(user) > 0;
+    }
+
+    public User getUserByUsername(String username) {
+        return userMapper.findByUsername(username);
     }
 }

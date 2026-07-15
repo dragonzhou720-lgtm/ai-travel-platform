@@ -32,4 +32,9 @@ public class AttractionController {
         }
         return ResponseEntity.ok(attraction);
     }
+
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, Object>> health() {
+        return ResponseEntity.ok(Map.of("status", "UP", "service", "attraction-service"));
+    }
 }

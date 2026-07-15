@@ -7,15 +7,20 @@ spring:
   cloud:
     nacos:
       discovery:
-        enabled: true
-        server-addr: localhost:8848
-        ip: 127.0.0.1
+        enabled: ${SPRING_CLOUD_NACOS_DISCOVERY_ENABLED:true}
+        server-addr: ${SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR:localhost:8848}
+        ip: ${SPRING_CLOUD_NACOS_DISCOVERY_IP:127.0.0.1}
       config:
-        enabled: false
+        enabled: ${SPRING_CLOUD_NACOS_CONFIG_ENABLED:false}
     sentinel:
       transport:
         dashboard: localhost:8718
         port: 8720
+
+deepseek:
+  api-key: ${DEEPSEEK_API_KEY:}
+  base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com/v1}
+  model: ${DEEPSEEK_MODEL:deepseek-chat}
 
 logging:
   level:

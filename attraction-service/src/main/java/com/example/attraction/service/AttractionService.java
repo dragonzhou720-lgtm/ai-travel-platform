@@ -66,7 +66,12 @@ public class AttractionService {
         map.put("rating", attraction.getRating());
         map.put("description", attraction.getDescription());
         map.put("openTime", attraction.getOpenTime());
-        map.put("tags", attraction.getTags());
+        String tags = attraction.getTags();
+        if (tags != null && !tags.isEmpty()) {
+            map.put("tags", tags.split(","));
+        } else {
+            map.put("tags", new String[0]);
+        }
         map.put("coverImage", attraction.getCoverImage());
         map.put("status", attraction.getStatus());
         return map;

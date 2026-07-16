@@ -49,7 +49,7 @@ spring:
         - id: favorite-service
           uri: lb://favorite-service
           predicates:
-            - Path=/api/favorite/**
+            - Path=/api/favorites/**
           filters:
             - JwtAuthenticationFilter
 

@@ -22,10 +22,12 @@ public class FavoriteController {
     }
 
     @PostMapping
-    public ResponseEntity<Favorite> add(@RequestBody FavoriteDTO dto) {
+    public ResponseEntity<Object> add(@RequestBody FavoriteDTO dto) {
         Favorite favorite = favoriteService.add(dto);
         if (favorite == null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "收藏已存在");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(favorite);
     }

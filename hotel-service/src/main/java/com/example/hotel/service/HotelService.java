@@ -57,7 +57,12 @@ public class HotelService {
         map.put("rating", hotel.getRating());
         map.put("star", hotel.getStarLevel() + "-star");
         map.put("description", hotel.getDescription());
-        map.put("tags", hotel.getTags());
+        String tags = hotel.getTags();
+        if (tags != null && !tags.isEmpty()) {
+            map.put("tags", tags.split(","));
+        } else {
+            map.put("tags", new String[0]);
+        }
         map.put("coverImage", hotel.getCoverImage());
         map.put("status", hotel.getStatus());
         return map;

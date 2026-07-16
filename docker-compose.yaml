@@ -12,7 +12,7 @@ services:
       - "3309:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./sql:/docker-entrypoint-initdb.d:ro
+      - ./sql/ai_travel_platform_full.sql:/docker-entrypoint-initdb.d/ai_travel_platform_full.sql:ro
     command:
       - --default-authentication-plugin=mysql_native_password
       - --character-set-server=utf8mb4
@@ -100,6 +100,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
       SPRING_CLOUD_NACOS_CONFIG_SERVER-ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_DISCOVERY_IP: travel-platform-user
       JWT_SECRET: travel-platform-jwt-secret-key-2025
     ports:
       - "8081:8081"
@@ -126,6 +127,7 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
       SPRING_CLOUD_NACOS_CONFIG_SERVER-ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_DISCOVERY_IP: travel-platform-ai
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
       DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
@@ -157,6 +159,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
       SPRING_CLOUD_NACOS_CONFIG_SERVER-ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_DISCOVERY_IP: travel-platform-route
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: guest
@@ -191,6 +194,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
       SPRING_CLOUD_NACOS_CONFIG_SERVER-ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_DISCOVERY_IP: travel-platform-attraction
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: 123456
@@ -224,6 +228,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
       SPRING_CLOUD_NACOS_CONFIG_SERVER-ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_DISCOVERY_IP: travel-platform-hotel
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: 123456
@@ -257,6 +262,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR: nacos:8848
       SPRING_CLOUD_NACOS_CONFIG_SERVER-ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_DISCOVERY_IP: travel-platform-favorite
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: 123456

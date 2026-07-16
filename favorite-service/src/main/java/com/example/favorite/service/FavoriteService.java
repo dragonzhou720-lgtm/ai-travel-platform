@@ -40,6 +40,7 @@ public class FavoriteService {
         favorite.setUserId(dto.getUserId());
         favorite.setTargetId(dto.getTargetId());
         favorite.setTargetType(dto.getTargetType());
+        favorite.setCreatedAt(java.time.LocalDateTime.now());
         favoriteMapper.insert(favorite);
         clearUserCache(dto.getUserId());
         return favorite;

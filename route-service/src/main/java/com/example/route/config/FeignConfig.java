@@ -1,10 +1,12 @@
 package com.example.route.config;
 
 import feign.RequestInterceptor;
+import feign.codec.Encoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.cloud.openfeign.support.SpringEncoder;
 
 @Configuration
 public class FeignConfig {
@@ -15,5 +17,10 @@ public class FeignConfig {
             requestTemplate.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
             requestTemplate.header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
         };
+    }
+
+    @Bean
+    public Encoder feignEncoder() {
+        return new SpringEncoder();
     }
 }

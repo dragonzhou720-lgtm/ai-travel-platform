@@ -32,6 +32,10 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
     private static final List<String> WHITELIST = List.of(
             "/api/user/login",
             "/api/user/register",
+            "/api/attraction/**",
+            "/api/hotel/**",
+            "/api/route/search",
+            "/api/route/hot",
             "/actuator/**"
     );
 

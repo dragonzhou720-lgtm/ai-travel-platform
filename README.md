@@ -26,6 +26,8 @@
 - `hotel-service`：酒店服务
 - `favorite-service`：收藏服务
 
+> **前端代码**：前端项目代码位于 `frontend` 分支下，包含 Vue3、Element Plus 等前端技术栈实现的完整前端界面。
+
 ## 成员工作完成情况
 
 ### 成员C - 系统架构与AI核心开发 ✅

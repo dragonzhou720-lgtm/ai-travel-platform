@@ -10,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -19,9 +21,15 @@ import java.util.List;
 @Component
 public class GatewaySecurityFilter implements GlobalFilter, Ordered {
 
+    private static final Logger logger = LoggerFactory.getLogger(GatewaySecurityFilter.class);
+
     private static final List<String> WHITELIST = List.of(
             "/api/user/login",
             "/api/user/register",
+            "/api/attraction/**",
+            "/api/hotel/**",
+            "/api/route/search",
+            "/api/route/hot",
             "/actuator/**"
     );
 
@@ -35,7 +43,10 @@ public class GatewaySecurityFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getPath().value();
-        if (isWhitelisted(path)) {
+        logger.info("GatewaySecurityFilter: Request path = {}", path);
+        boolean isWhitelisted = isWhitelisted(path);
+        logger.info("GatewaySecurityFilter: Path {} is whitelisted: {}", path, isWhitelisted);
+        if (isWhitelisted) {
             return chain.filter(exchange);
         }
 

@@ -82,12 +82,17 @@ public class RouteService {
             try {
                 Entry attrEntry = SphU.entry(SentinelConfig.ATTRACTION_SERVICE_RESOURCE);
                 try {
+                    log.info("Calling attractionClient.searchAttractions with city: {}", city);
                     attractions = attractionClient.searchAttractions(city, null);
+                    log.info("Attraction service returned {} attractions", attractions != null ? attractions.size() : 0);
                 } finally {
                     attrEntry.exit();
                 }
             } catch (BlockException e) {
                 log.warn("Attraction service blocked by Sentinel, using fallback");
+                attractions = generateFallbackAttractions(city);
+            } catch (Exception e) {
+                log.error("Error calling attraction service: {}", e.getMessage(), e);
                 attractions = generateFallbackAttractions(city);
             }
 
@@ -95,12 +100,17 @@ public class RouteService {
             try {
                 Entry hotelEntry = SphU.entry(SentinelConfig.HOTEL_SERVICE_RESOURCE);
                 try {
+                    log.info("Calling hotelClient.searchHotels with city: {}", city);
                     hotels = hotelClient.searchHotels(city, null);
+                    log.info("Hotel service returned {} hotels", hotels != null ? hotels.size() : 0);
                 } finally {
                     hotelEntry.exit();
                 }
             } catch (BlockException e) {
                 log.warn("Hotel service blocked by Sentinel, using fallback");
+                hotels = generateFallbackHotels(city);
+            } catch (Exception e) {
+                log.error("Error calling hotel service: {}", e.getMessage(), e);
                 hotels = generateFallbackHotels(city);
             }
 

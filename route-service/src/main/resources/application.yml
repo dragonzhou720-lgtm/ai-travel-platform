@@ -35,7 +35,10 @@ spring:
       config:
         enabled: ${SPRING_CLOUD_NACOS_CONFIG_ENABLED:false}
     sentinel:
-      enabled: false
+      enabled: true
+    openfeign:
+      circuitbreaker:
+        enabled: true
 
 logging:
   level:

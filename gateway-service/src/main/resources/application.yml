@@ -1,5 +1,10 @@
 server:
   port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 spring:
   application:
@@ -26,32 +31,22 @@ spring:
           uri: lb://ai-service
           predicates:
             - Path=/api/ai/**
-          filters:
-            - JwtAuthenticationFilter
         - id: route-service
           uri: lb://route-service
           predicates:
             - Path=/api/route/**
-          filters:
-            - JwtAuthenticationFilter
         - id: attraction-service
           uri: lb://attraction-service
           predicates:
             - Path=/api/attraction/**
-          filters:
-            - JwtAuthenticationFilter
         - id: hotel-service
           uri: lb://hotel-service
           predicates:
             - Path=/api/hotel/**
-          filters:
-            - JwtAuthenticationFilter
         - id: favorite-service
           uri: lb://favorite-service
           predicates:
             - Path=/api/favorites/**
-          filters:
-            - JwtAuthenticationFilter
 
 jwt:
   secret: ${JWT_SECRET:travel-platform-jwt-secret-key-2024-must-be-at-least-256-bits-long-for-hs256-algorithm}

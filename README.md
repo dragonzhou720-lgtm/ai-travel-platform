@@ -27,7 +27,7 @@
 - `favorite-service`：收藏服务
 - `web-frontend`：前端页面与交互
 
-> **前端代码**：前端项目代码位于 `frontend` 分支下，包含 Vue3、Element Plus 等前端技术栈实现的完整前端界面。
+
 
 ## 成员工作完成情况
 

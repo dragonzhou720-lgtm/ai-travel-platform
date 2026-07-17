@@ -76,3 +76,17 @@ rabbitmq-data/
 
 ### Documentation ###
 docs/
+
+### Frontend ###
+node_modules/
+dist/
+build/
+.nuxt/
+.next/
+.vuepress/dist/
+*.local
+
+### NPM ###
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

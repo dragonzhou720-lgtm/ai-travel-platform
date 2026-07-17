@@ -6,7 +6,7 @@
 
 本项目当前采用以下技术栈与架构：
 
-- 前端：Vue3、Element Plus、Axios、Pinia、Vue Router
+- 前端：Vue 3、Vite、Tailwind CSS、Element Plus、Axios、Pinia、Vue Router
 - 后端：Spring Boot、Spring Cloud Alibaba、OpenFeign、Spring Security、JWT
 - 基础设施：Nacos、Redis、RabbitMQ、MySQL
 - 部署：Docker、Docker Compose、Nginx
@@ -25,6 +25,7 @@
 - `attraction-service`：景点服务
 - `hotel-service`：酒店服务
 - `favorite-service`：收藏服务
+- `web-frontend`：前端页面与交互
 
 ## 成员工作完成情况
 
@@ -53,8 +54,29 @@
 | Redis缓存实现 | ✅ | 景点/酒店/收藏缓存 |
 | Docker镜像构建 | ✅ | 三个业务服务Dockerfile |
 
+### 成员A - 前端页面开发 ✅
+
+| 页面 | 完成状态 | 说明 |
+| :--- | :--- | :--- |
+| 登录页面 | ✅ | 用户登录、表单验证、Token管理 |
+| 注册页面 | ✅ | 用户注册、密码一致性校验、注册成功跳转 |
+| 首页 | ✅ | 热门路线展示、热门城市卡片、推荐景点 |
+| 景点列表页 | ✅ | 城市筛选、关键词搜索、实时查询 |
+| 景点详情页 | ✅ | 景点信息展示、收藏功能、评论展示 |
+| 酒店列表页 | ✅ | 城市筛选、关键词搜索、价格展示 |
+| 酒店详情页 | ✅ | 酒店信息展示、收藏功能、房型展示 |
+| AI路线规划页 | ✅ | 城市/天数/风格选择、AI路线生成、多格式数据解析 |
+| 路线列表页 | ✅ | 按城市筛选路线、路线卡片展示 |
+| 路线详情页 | ✅ | 完整行程展示、AI建议、收藏功能 |
+| 收藏页面 | ✅ | 按类型筛选、收藏列表、删除收藏 |
+| 个人中心 | ✅ | 用户信息展示、收藏统计、退出登录 |
+| 导航组件 | ✅ | 全局导航、登录状态展示、路由跳转 |
+| API层封装 | ✅ | Axios拦截器、统一Token注入、响应数据提取 |
+| Pinia状态管理 | ✅ | 用户状态管理、路由守卫、登录验证 |
+
 ## 已完成功能
 
+### 后端功能
 - Maven 多模块工程能够正常安装
 - `gateway-service` 已恢复并完善统一网关入口配置
 - `user-service` 已可本地启动，Nacos本地启动冲突问题已处理
@@ -70,7 +92,23 @@
 - `route-service` 路线数据完善：创建 `RouteDay` 实体和 `RouteDayMapper`，从数据库查询关联的行程、景点和酒店数据
 - 热门路线统计修复：创建 `RouteInitializer` 在服务启动时从数据库初始化热门路线计数，添加 `/api/route/hot/cities` 按城市统计热门路线接口
 
+### 前端功能
+- 登录注册功能：支持用户名密码登录、新用户注册、密码一致性校验
+- 首页展示：热门路线卡片、热门城市入口、推荐景点列表
+- 景点管理：景点列表搜索（城市筛选+关键词）、景点详情展示、收藏功能
+- 酒店管理：酒店列表搜索（城市筛选+关键词）、酒店详情展示、收藏功能
+- AI路线规划：城市/天数/风格选择、一键生成路线、多格式数据解析与渲染
+- 路线浏览：路线列表按城市筛选、路线详情完整展示、AI规划建议查看
+- 收藏管理：收藏列表按类型筛选（景点/酒店/路线）、收藏添加与取消
+- 个人中心：用户信息展示、收藏统计数据、退出登录
+- 全局导航：登录状态展示、路由跳转、页面入口导航
+- API层封装：统一请求拦截器（Token注入）、响应拦截器（数据提取、401处理）
+- 响应式设计：移动端优先布局、Tailwind CSS响应式断点适配
+- 错误处理：请求失败提示、加载状态展示、降级方案（原始数据展示）
+
 ## 服务架构
+
+### 后端服务
 
 | 服务名称 | 端口 | 职责 |
 | :--- | :--- | :--- |
@@ -82,6 +120,12 @@
 | `hotel-service` | 8085 | 酒店服务 |
 | `favorite-service` | 8086 | 收藏服务 |
 | `common-module` | - | 公共模块 |
+
+### 前端服务
+
+| 服务名称 | 端口 | 职责 |
+| :--- | :--- | :--- |
+| `web-frontend` | 5173（本地）/ 3000（Docker） | 前端页面，用户交互界面 |
 
 ## API接口文档
 
@@ -371,12 +415,28 @@
 
 ## Docker Compose 现状
 
-当前项目统一使用 `compose.yaml` 作为 Docker 编排文件，包含以下服务：
+当前项目统一使用 `docker-compose.yaml` 作为 Docker 编排文件，包含以下服务：
+
+### 基础设施服务
 
 - MySQL 8.0
 - Nacos 2.3.2（standalone）
 - Redis 7.2-alpine
 - RabbitMQ 3.12-management
+
+### 后端微服务
+
+- user-service：用户认证服务
+- ai-service：AI 路线规划服务
+- route-service：路线生成与管理服务
+- attraction-service：景点服务
+- hotel-service：酒店服务
+- favorite-service：收藏服务
+- gateway-service：API 网关
+
+### 前端服务
+
+- web-frontend：前端页面（基于 Nginx 部署）
 
 ### 端口映射
 
@@ -385,6 +445,8 @@
 - Redis：`6379 -> 6379`
 - RabbitMQ：`5672 -> 5672`
 - RabbitMQ 管理界面：`15672 -> 15672`
+- Gateway：`8080 -> 8080`
+- Web Frontend：`3000 -> 80`
 
 ### 账号信息
 
@@ -433,15 +495,13 @@
 docker compose up -d
 ```
 
-### 2. 启动用户服务
+### 2. 启动后端服务
 
 ```bash
+# 启动用户服务
 mvn -pl user-service spring-boot:run
-```
 
-### 3. 启动其他服务
-
-```bash
+# 启动其他服务
 mvn -pl ai-service spring-boot:run
 mvn -pl route-service spring-boot:run
 mvn -pl attraction-service spring-boot:run
@@ -449,6 +509,16 @@ mvn -pl hotel-service spring-boot:run
 mvn -pl favorite-service spring-boot:run
 mvn -pl gateway-service spring-boot:run
 ```
+
+### 3. 启动前端服务
+
+```bash
+cd web-frontend
+npm install
+npm run dev
+```
+
+前端访问地址：`http://localhost:5173`
 
 ### 4. 测试账号
 
@@ -469,35 +539,59 @@ mvn -pl gateway-service spring-boot:run
 
 ## 已修复的问题
 
-### 1. 父工程依赖缺失
+### 后端问题
+
+#### 1. 父工程依赖缺失
 
 - 错误：`Could not find artifact com.example:travel-platform-backend:pom:1.0.0-SNAPSHOT`
 - 处理：先执行根工程安装，确保父 POM 进入本地仓库
 
-### 2. Spring Cloud Nacos import 报错
+#### 2. Spring Cloud Nacos import 报错
 
 - 错误：`No spring.config.import property has been defined`
 - 处理：本地调试阶段关闭了 Nacos 配置与注册依赖，生产环境可重新开启
 
-### 3. Spring Security 循环依赖
+#### 3. Spring Security 循环依赖
 
 - 错误：`jwtAuthFilter -> userService -> securityConfig -> jwtAuthFilter`
 - 处理：调整了 `SecurityConfig` 中 `JwtAuthFilter` 的注入方式，解除循环依赖
 
-### 4. JwtAuthFilter 无效Token处理
+#### 4. JwtAuthFilter 无效Token处理
 
 - 问题：Postman 请求携带空的或无效的 Authorization 头（如 `Bearer `）时返回 500 错误
 - 处理：在 `JwtAuthFilter` 中添加了空token检查和 `JwtException` 异常捕获，无效token请求会继续过滤器链而不是抛出异常
 
-### 5. Favorite-Service Redis密码缺失
+#### 5. Favorite-Service Redis密码缺失
 
 - 问题：Redis 启用了密码认证，但 `favorite-service` 配置中未提供密码，导致添加收藏时返回 500 错误
 - 处理：在 `favorite-service` 的 `application.yml` 中添加了 Redis 密码配置
 
-### 6. Route-Service 路线ID问题
+#### 6. Route-Service 路线ID问题
 
 - 问题：`GET /api/route/1` 返回 404
 - 处理：数据库中路线ID从 2 开始，建议使用有效的路线ID测试
+
+### 前端问题
+
+#### 7. AI路线规划数据结构兼容性问题
+
+- 问题：后端返回的AI路线数据格式不统一（day1/day2/day3直接属性、itinerary对象、schedule字段、itinerary数组），导致前端无法正确解析和渲染行程内容
+- 处理：在 Route.vue 组件中增强 formattedDays 计算属性，依次支持多种数据格式的解析
+
+#### 8. Gateway认证拦截导致AI接口无法访问
+
+- 问题：AI路线生成接口被Gateway的JwtAuthenticationFilter拦截，未登录用户无法调用
+- 处理：在 GatewaySecurityFilter 和 GatewayAuthFilter 中添加 `/api/ai/generate-route` 和 `/api/ai/plan` 到白名单，并移除 application.yml 中 ai-service 路由的 JwtAuthenticationFilter 配置
+
+#### 9. 响应式布局适配问题
+
+- 问题：首页、景点列表页和酒店列表页在移动端显示时布局错乱
+- 处理：使用 Tailwind CSS 的响应式前缀（sm:、md:、lg:）配置不同屏幕尺寸的布局
+
+#### 10. 收藏功能未登录状态处理
+
+- 问题：未登录用户点击收藏按钮时页面无响应或报错
+- 处理：在收藏相关组件中添加登录状态检查，未登录时自动跳转登录页面
 
 ## Redis 缓存实现
 
@@ -553,6 +647,15 @@ ai-travel-platform/
 ├── attraction-service/     # 景点服务
 ├── hotel-service/          # 酒店服务
 ├── favorite-service/       # 收藏服务
+├── web-frontend/           # 前端页面
+│   ├── src/
+│   │   ├── api/            # API接口封装
+│   │   ├── components/     # 公共组件
+│   │   ├── stores/         # Pinia状态管理
+│   │   ├── views/          # 页面组件
+│   │   ├── App.vue         # 根组件
+│   │   └── main.js         # 入口文件
+│   └── package.json        # 前端依赖配置
 ├── sql/                    # 数据库脚本
 ├── docker-compose.yaml     # Docker部署配置
 └── README.md               # 项目说明文档

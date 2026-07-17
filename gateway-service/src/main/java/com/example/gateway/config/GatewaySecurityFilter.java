@@ -30,6 +30,8 @@ public class GatewaySecurityFilter implements GlobalFilter, Ordered {
             "/api/hotel/**",
             "/api/route/search",
             "/api/route/hot",
+            "/api/ai/generate-route",
+            "/api/ai/plan",
             "/actuator/**"
     );
 

@@ -71,6 +71,7 @@ public class RouteService {
                 Entry aiEntry = SphU.entry(SentinelConfig.AI_SERVICE_RESOURCE);
                 try {
                     aiResponse = aiClient.generateRoute(aiRequest);
+                    log.info("AI route generation response: {}", aiResponse);
                 } finally {
                     aiEntry.exit();
                 }
@@ -114,8 +115,38 @@ public class RouteService {
                 hotels = generateFallbackHotels(city);
             }
 
-            List<Map<String, Object>> itinerary = generateItinerary(days, attractions != null ? attractions : new ArrayList<>(),
-                    hotels != null ? hotels : new ArrayList<>(), style);
+            List<Map<String, Object>> itinerary;
+            String aiSummary = null;
+            if (aiResponse != null && (Boolean) aiResponse.getOrDefault("success", false)) {
+                Map<String, Object> aiRoute = (Map<String, Object>) aiResponse.get("route");
+                if (aiRoute != null) {
+                    if (aiRoute.containsKey("itinerary")) {
+                        itinerary = (List<Map<String, Object>>) aiRoute.get("itinerary");
+                        aiSummary = (String) aiRoute.getOrDefault("ai_suggestion", (String) aiResponse.get("ai_response"));
+                        log.info("Using AI generated itinerary from itinerary field");
+                    } else if (aiRoute.containsKey("schedule")) {
+                        itinerary = convertScheduleToItinerary((Map<String, Object>) aiRoute.get("schedule"));
+                        aiSummary = (String) aiRoute.getOrDefault("ai_suggestion", (String) aiResponse.get("ai_response"));
+                        log.info("Using AI generated itinerary from schedule field");
+                    } else {
+                        itinerary = generateItinerary(days, attractions != null ? attractions : new ArrayList<>(),
+                                hotels != null ? hotels : new ArrayList<>(), style);
+                        aiSummary = (String) aiResponse.getOrDefault("ai_response", null);
+                        log.info("AI response doesn't contain itinerary/schedule, using generated itinerary");
+                    }
+                } else {
+                    itinerary = generateItinerary(days, attractions != null ? attractions : new ArrayList<>(),
+                            hotels != null ? hotels : new ArrayList<>(), style);
+                    aiSummary = (String) aiResponse.getOrDefault("ai_response", null);
+                    log.info("AI response doesn't contain route, using generated itinerary");
+                }
+            } else {
+                itinerary = generateItinerary(days, attractions != null ? attractions : new ArrayList<>(),
+                        hotels != null ? hotels : new ArrayList<>(), style);
+                log.info("AI service failed or not available, using generated itinerary");
+            }
+
+            List<Map<String, Object>> routeDays = convertItineraryToRouteDays(itinerary);
 
             RouteResponse route = RouteResponse.builder()
                     .id(idGenerator.incrementAndGet())
@@ -123,6 +154,8 @@ public class RouteService {
                     .days(days)
                     .style(style)
                     .itinerary(itinerary)
+                    .routeDays(routeDays)
+                    .aiSummary(aiSummary)
                     .attractions(attractions != null && attractions.size() > 5 ? attractions.subList(0, 5) : attractions)
                     .hotels(hotels != null && hotels.size() > 3 ? hotels.subList(0, 3) : hotels)
                     .createdAt(System.currentTimeMillis())
@@ -198,6 +231,108 @@ public class RouteService {
         return hotels;
     }
 
+    private List<Map<String, Object>> convertItineraryToRouteDays(List<Map<String, Object>> itinerary) {
+        List<Map<String, Object>> routeDays = new ArrayList<>();
+        for (int i = 0; i < itinerary.size(); i++) {
+            Map<String, Object> dayPlan = itinerary.get(i);
+            Map<String, Object> routeDay = new HashMap<>();
+            
+            Integer dayNo = (Integer) dayPlan.get("day");
+            if (dayNo == null) {
+                dayNo = i + 1;
+            }
+            
+            routeDay.put("id", dayNo);
+            routeDay.put("dayNo", dayNo);
+            routeDay.put("title", "第" + dayNo + "天行程");
+            
+            StringBuilder scheduleDetail = new StringBuilder();
+            Object morningObj = dayPlan.get("morning");
+            Object afternoonObj = dayPlan.get("afternoon");
+            Object eveningObj = dayPlan.get("evening");
+            
+            if (morningObj != null) {
+                if (morningObj instanceof List) {
+                    scheduleDetail.append("上午：").append(String.join("、", ((List<?>) morningObj).stream()
+                            .map(Object::toString).toList())).append("；");
+                } else {
+                    scheduleDetail.append("上午：").append(morningObj.toString()).append("；");
+                }
+            }
+            
+            if (afternoonObj != null) {
+                if (afternoonObj instanceof List) {
+                    scheduleDetail.append("下午：").append(String.join("、", ((List<?>) afternoonObj).stream()
+                            .map(Object::toString).toList())).append("；");
+                } else {
+                    scheduleDetail.append("下午：").append(afternoonObj.toString()).append("；");
+                }
+            }
+            
+            if (eveningObj != null) {
+                if (eveningObj instanceof List) {
+                    scheduleDetail.append("晚上：").append(String.join("、", ((List<?>) eveningObj).stream()
+                            .map(Object::toString).toList()));
+                } else {
+                    scheduleDetail.append("晚上：").append(eveningObj.toString());
+                }
+            }
+            
+            routeDay.put("scheduleDetail", scheduleDetail.toString());
+            routeDay.put("attractionIds", new ArrayList<>());
+            routeDays.add(routeDay);
+        }
+        return routeDays;
+    }
+
+    private List<Map<String, Object>> convertScheduleToItinerary(Map<String, Object> schedule) {
+        List<Map<String, Object>> itinerary = new ArrayList<>();
+        for (int day = 1; day <= schedule.size(); day++) {
+            String dayKey = "day" + day;
+            Map<String, Object> dayPlan = (Map<String, Object>) schedule.get(dayKey);
+            if (dayPlan != null) {
+                Map<String, Object> itineraryDay = new HashMap<>();
+                itineraryDay.put("day", day);
+                Object morning = dayPlan.get("morning");
+                Object afternoon = dayPlan.get("afternoon");
+                Object evening = dayPlan.get("evening");
+                
+                if (morning instanceof List) {
+                    itineraryDay.put("morning", morning);
+                } else if (morning != null) {
+                    List<String> morningList = new ArrayList<>();
+                    morningList.add(morning.toString());
+                    itineraryDay.put("morning", morningList);
+                } else {
+                    itineraryDay.put("morning", new ArrayList<>());
+                }
+                
+                if (afternoon instanceof List) {
+                    itineraryDay.put("afternoon", afternoon);
+                } else if (afternoon != null) {
+                    List<String> afternoonList = new ArrayList<>();
+                    afternoonList.add(afternoon.toString());
+                    itineraryDay.put("afternoon", afternoonList);
+                } else {
+                    itineraryDay.put("afternoon", new ArrayList<>());
+                }
+                
+                if (evening instanceof List) {
+                    itineraryDay.put("evening", evening);
+                } else if (evening != null) {
+                    List<String> eveningList = new ArrayList<>();
+                    eveningList.add(evening.toString());
+                    itineraryDay.put("evening", eveningList);
+                } else {
+                    itineraryDay.put("evening", new ArrayList<>());
+                }
+                
+                itinerary.add(itineraryDay);
+            }
+        }
+        return itinerary;
+    }
+
     private List<Map<String, Object>> generateItinerary(Integer days, List<Map<String, Object>> attractions,
                                                          List<Map<String, Object>> hotels, String style) {
         List<Map<String, Object>> itinerary = new ArrayList<>();
@@ -261,6 +396,23 @@ public class RouteService {
         return cachedRoutes;
     }
 
+    public List<RouteResponse> getRoutesByCity(String city) {
+        List<RouteResponse> result = new ArrayList<>();
+        
+        routeStore.values().stream()
+                .filter(r -> city.equals(r.getCity()))
+                .forEach(result::add);
+        
+        List<Route> dbRoutes = routeMapper.findByDestination(city);
+        for (Route dbRoute : dbRoutes) {
+            if (!routeStore.containsKey(dbRoute.getId())) {
+                result.add(convertToRouteResponse(dbRoute));
+            }
+        }
+
+        return result;
+    }
+
     private RouteResponse convertToRouteResponse(Route route) {
         List<RouteDay> routeDays = routeDayMapper.findByRouteId(route.getId());
         
@@ -316,10 +468,16 @@ public class RouteService {
         
         return RouteResponse.builder()
                 .id(route.getId())
+                .name(route.getName())
                 .city(route.getDestination())
+                .destination(route.getDestination())
                 .days(route.getDays())
+                .budget(route.getBudget())
                 .style(route.getPreference())
+                .preference(route.getPreference())
+                .aiSummary(route.getAiSummary())
                 .itinerary(itinerary)
+                .routeDays(itinerary)
                 .attractions(attractions)
                 .hotels(hotels)
                 .createdAt(route.getCreatedAt() != null ? route.getCreatedAt().toLocalDate().toEpochDay() * 86400000 : System.currentTimeMillis())

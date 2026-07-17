@@ -66,6 +66,11 @@ public class RouteController {
         return ResponseEntity.ok(Map.of("city", city, "days", days, "style", style, "count", count));
     }
 
+    @GetMapping("/city/{city}")
+    public ResponseEntity<List<RouteResponse>> getRoutesByCity(@PathVariable String city) {
+        return ResponseEntity.ok(routeService.getRoutesByCity(city));
+    }
+
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
         return ResponseEntity.ok(Map.of("status", "UP", "service", "route-service"));

@@ -122,6 +122,8 @@ services:
       dockerfile: ai-service/Dockerfile
     container_name: travel-platform-ai
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: docker
@@ -306,6 +308,26 @@ services:
       timeout: 5s
       retries: 10
       start_period: 60s
+
+  web-frontend:
+    build:
+      context: .
+      dockerfile: web-frontend/Dockerfile
+    container_name: travel-platform-web
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - "3000:80"
+    depends_on:
+      gateway-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
 volumes:
   mysql_data:

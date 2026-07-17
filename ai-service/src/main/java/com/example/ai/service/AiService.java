@@ -31,15 +31,18 @@ public class AiService {
 
     private void initFromEnv() {
         try {
-            Dotenv dotenv = Dotenv.load();
-            if (deepSeekProperties.getApiKey() == null || deepSeekProperties.getApiKey().isBlank()) {
-                deepSeekProperties.setApiKey(dotenv.get("DEEPSEEK_API_KEY"));
+            String apiKeyEnv = System.getenv("DEEPSEEK_API_KEY");
+            String baseUrlEnv = System.getenv("DEEPSEEK_BASE_URL");
+            String modelEnv = System.getenv("DEEPSEEK_MODEL");
+
+            if (apiKeyEnv != null && !apiKeyEnv.isBlank()) {
+                deepSeekProperties.setApiKey(apiKeyEnv);
             }
-            if (deepSeekProperties.getBaseUrl() == null || deepSeekProperties.getBaseUrl().isBlank()) {
-                deepSeekProperties.setBaseUrl(dotenv.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1"));
+            if (baseUrlEnv != null && !baseUrlEnv.isBlank()) {
+                deepSeekProperties.setBaseUrl(baseUrlEnv);
             }
-            if (deepSeekProperties.getModel() == null || deepSeekProperties.getModel().isBlank()) {
-                deepSeekProperties.setModel(dotenv.get("DEEPSEEK_MODEL", "deepseek-chat"));
+            if (modelEnv != null && !modelEnv.isBlank()) {
+                deepSeekProperties.setModel(modelEnv);
             }
         } catch (Exception e) {
             // ignore - use defaults
